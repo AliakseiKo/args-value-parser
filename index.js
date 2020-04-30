@@ -78,7 +78,12 @@ function parseArg(arg, prefix = "-") {
   return { prefix: result[1], key: result[2], value: result[4] }
 }
 
-function parseArgs(args = process.argv.slice(2)) {
+function parseArgs(
+  args = process.argv.slice(2),
+  {
+    defaultValue = true
+  } = {}
+) {
 
   const resultDict = {};
 
@@ -86,7 +91,7 @@ function parseArgs(args = process.argv.slice(2)) {
     let { prefix, key, value } = parseArg(arg);
     console.log(prefix, key, value);
     if ( !(prefix === undefined || key === undefined) ) {
-      resultDict[key] = (value === undefined) ? true : parseValue(value);
+      resultDict[key] = (value === undefined) ? defaultValue : parseValue(value);
     }
   });
 
