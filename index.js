@@ -45,7 +45,7 @@ function parseArray(value) {
 }
 
 function parseObject(value) {
-  if (Array.isArray(value) || typeof value === "object") return success(value);
+  if (!Array.isArray(value) && typeof value === "object") return success(value);
   if (typeof value === "string" && /^\{.*\}$/s.test(value)) {
     try { return success( eval(`(function(){return${value}})()`) ); }
     catch { return fail(value); }
