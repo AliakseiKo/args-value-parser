@@ -1,72 +1,80 @@
+function success(value) {
+  return { succeed: true, value };
+}
+
+function fail(value) {
+  return  { succeed: false, value };
+}
+
 function parseUndefined(value) {
-  if (typeof value === "undefined") return { succeed: true, value };
-  if (value === "undefined") return { succeed: true, value: undefined };
-  return { succeed: false, value };
+  if (typeof value === "undefined") return success(value);
+  if (value === "undefined") return success(undefined);
+  return fail(value);
 }
 
 function parseNull(value) {
-  if (value === null) return { succeed: true, value };
-  if (value === "null") return { succeed: true, value: null };
-  return { succeed: false, value };
+  if (value === null) return success(null);
+  if (value === "null") return success(null);
+  return fail(value);
 }
 
 function parseBoolean(value) {
-  if (typeof value === "boolean") return { succeed: true, value };
-  if (value === "true") return { succeed: true, value: true };
-  if (value === "false") return { succeed: true, value: false }
-  return { succeed: false, value };
+  if (typeof value === "boolean") return  success(value);
+  if (value === "true") return success(true);
+  if (value === "false") return success(false);
+  return fail(value);
 }
 
 function parseNumber(value) {
-  if (value === "") return { succeed: false, value };
-  if (typeof value === "number") return { succeed: true, value };
-  const result = Number(value);
-  if (!isNaN(result)) return { succeed: true, value: result };
-  return { succeed: false, value };
+  if (value === "NaN") return success(NaN);
+  if (value === "Infinity") return success(Infinity);
+  if (value === "-Infinity") return success(-Infinity);
+  const number = Number(value);
+  if (!isNaN(number)) return success(number);
+  return fail(value);
 }
 
 function parseArray(value) {
-  if (Array.isArray(value)) return { succeed: true, value };
-  if (value.charAt(0) === "[") {
-    try {
-      let _value; eval(`_value = ${value}`);
-      return { succeed: true, value: _value };
-    } catch {
-      return { succeed: false, value };
-    }
+  if (Array.isArray(value)) return success(value);
+  if (
+    typeof value === "string" &&
+    value.charAt(0) === "[" &&
+    value.charAt(value.length - 1) === "]"
+  ) {
+    try { return success( eval(`(function(){return${value}})()`) ); }
+    catch { return fail(value); }
   }
-  return { succeed: false, value };
+  return fail(value);
 }
 
 function parseObject(value) {
-  if (typeof value === "object" && !Array.isArray(value)) return { succeed: true, value };
-  if (value.charAt(0) === "{") {
-    try {
-      let _value; eval(`_value = ${value}`);
-      return { succeed: true, value: _value };
-    } catch {
-      console.log("caught");
-      return { succeed: false, value };
-    }
+  if (Array.isArray(value) || typeof value === "object") return success(value);
+  if (
+    typeof value === "string" &&
+    value.charAt(0) === "{" &&
+    value.charAt(value.length - 1) === "}"
+  ) {
+    try { return success( eval(`(function(){return${value}})()`) ); }
+    catch { return fail(value); }
   }
-  return { succeed: false, value };
+  return fail(value);
 }
 
 function parseString(value) {
-  if (typeof value === "string") return { succeed: true, value};
-  if (typeof value === "object") return { succeed: true, value: JSON.stringify(value) };
-  return { succeed: true, value: value.toString() };
+  if (typeof value === "string") return success(value);
+  if (typeof value === "object") return success( JSON.stringify(value) );
+  return success( value.toString() );
 }
 
-function parseArg(value) {
+function parseValue(value) {
   let result;
-  ((result = parseUndefined(value)).succeed) ||
-  ((result = parseNull(value)).succeed) ||
-  ((result = parseBoolean(value)).succeed) ||
-  ((result = parseNumber(value)).succeed) ||
-  ((result = parseArray(value)).succeed) ||
-  ((result = parseObject(value)).succeed) ||
-  ((result = parseString(value)).succeed);
+  (result = parseUndefined(value)).succeed ||
+  (result = parseNull(value)).succeed ||
+  (result = parseBoolean(value)).succeed ||
+  (result = parseNumber(value)).succeed ||
+  (result = parseArray(value)).succeed ||
+  (result = parseObject(value)).succeed ||
+  (result = parseString(value)).succeed;
   return result.value;
 }
 
@@ -84,7 +92,7 @@ function parseArgs(args = process.argv.slice(2)) {
       const value = arg.slice(equalSign + 1);
       const key = __key.slice(arg.charAt(1) === "-" ? 2 : 1);
 
-      resultDict[key] = (isNoValue) ? true : parseArg(value);
+      resultDict[key] = (isNoValue) ? true : parseValue(value);
     }
   });
 
