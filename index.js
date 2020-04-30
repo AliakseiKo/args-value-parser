@@ -1,3 +1,15 @@
+function parseUndefined(value) {
+  if (typeof value === "undefined") return { succeed: true, value };
+  if (value === "undefined") return { succeed: true, value: undefined };
+  return { succeed: false, value };
+}
+
+function parseNull(value) {
+  if (value === null) return { succeed: true, value };
+  if (value === "null") return { succeed: true, value: null };
+  return { succeed: false, value };
+}
+
 function parseBoolean(value) {
   if (typeof value === "boolean") return { succeed: true, value };
   if (value === "true") return { succeed: true, value: true };
@@ -15,7 +27,7 @@ function parseNumber(value) {
 
 function parseArray(value) {
   if (Array.isArray(value)) return { succeed: true, value };
-  if (value.charAt(0) === "[") {    
+  if (value.charAt(0) === "[") {
     try {
       let _value; eval(`_value = ${value}`);
       return { succeed: true, value: _value };
@@ -28,7 +40,7 @@ function parseArray(value) {
 
 function parseObject(value) {
   if (typeof value === "object" && !Array.isArray(value)) return { succeed: true, value };
-  if (value.charAt(0) === "{") {    
+  if (value.charAt(0) === "{") {
     try {
       let _value; eval(`_value = ${value}`);
       return { succeed: true, value: _value };
@@ -48,6 +60,8 @@ function parseString(value) {
 
 function parseArg(value) {
   let result;
+  ((result = parseUndefined(value)).succeed) ||
+  ((result = parseNull(value)).succeed) ||
   ((result = parseBoolean(value)).succeed) ||
   ((result = parseNumber(value)).succeed) ||
   ((result = parseArray(value)).succeed) ||
