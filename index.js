@@ -54,7 +54,7 @@ function parseObject(value) {
 }
 
 function parseString(value) {
-  if (typeof value === "string") return success(value);
+  if (typeof value === "string") return success( value.replace(/^(['"`])(.*)\1$/s, "$2") );
   if (typeof value === "object") return success( JSON.stringify(value) );
   return success( value.toString() );
 }
