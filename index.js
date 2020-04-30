@@ -71,21 +71,22 @@ function parseValue(value) {
   return result.value;
 }
 
+function parseArg(arg, prefix = "-") {
+  const regExp = new RegExp(`^(${prefix}*)?([^=]*)?(=)?(.*)?$`, "s");
+  const result = arg.match(regExp) || [];
+  if (result[3] !== undefined) result[4] = result[4] || "";
+  return { prefix: result[1], key: result[2], value: result[4] }
+}
+
 function parseArgs(args = process.argv.slice(2)) {
 
   const resultDict = {};
 
   args.forEach(arg => {
-    if (arg.charAt(0) === "-") {
-      const equalSign = arg.indexOf("=");
-      const isNoValue = (equalSign === - 1);
-
-      const __key = (isNoValue) ? arg : arg.slice(0, equalSign);
-
-      const value = arg.slice(equalSign + 1);
-      const key = __key.slice(arg.charAt(1) === "-" ? 2 : 1);
-
-      resultDict[key] = (isNoValue) ? true : parseValue(value);
+    let { prefix, key, value } = parseArg(arg);
+    console.log(prefix, key, value);
+    if ( !(prefix === undefined || key === undefined) ) {
+      resultDict[key] = (value === undefined) ? true : parseValue(value);
     }
   });
 
