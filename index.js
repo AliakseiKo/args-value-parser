@@ -37,11 +37,7 @@ function parseNumber(value) {
 
 function parseArray(value) {
   if (Array.isArray(value)) return success(value);
-  if (
-    typeof value === "string" &&
-    value.charAt(0) === "[" &&
-    value.charAt(value.length - 1) === "]"
-  ) {
+  if (typeof value === "string" && /^\[.*\]$/s.test(value)) {
     try { return success( eval(`(function(){return${value}})()`) ); }
     catch { return fail(value); }
   }
@@ -50,11 +46,7 @@ function parseArray(value) {
 
 function parseObject(value) {
   if (Array.isArray(value) || typeof value === "object") return success(value);
-  if (
-    typeof value === "string" &&
-    value.charAt(0) === "{" &&
-    value.charAt(value.length - 1) === "}"
-  ) {
+  if (typeof value === "string" && /^\{.*\}$/s.test(value)) {
     try { return success( eval(`(function(){return${value}})()`) ); }
     catch { return fail(value); }
   }
@@ -69,13 +61,13 @@ function parseString(value) {
 
 function parseValue(value) {
   let result;
-  (result = parseUndefined(value)).succeed ||
-  (result = parseNull(value)).succeed ||
-  (result = parseBoolean(value)).succeed ||
-  (result = parseNumber(value)).succeed ||
-  (result = parseArray(value)).succeed ||
-  (result = parseObject(value)).succeed ||
-  (result = parseString(value)).succeed;
+  (result = parseUndefined(value)).succeed
+  || (result = parseNull(value)).succeed
+  || (result = parseBoolean(value)).succeed
+  || (result = parseNumber(value)).succeed
+  || (result = parseArray(value)).succeed
+  || (result = parseObject(value)).succeed
+  || (result = parseString(value)).succeed;
   return result.value;
 }
 
