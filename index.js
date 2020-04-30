@@ -89,7 +89,6 @@ function parseArgs(
 
   args.forEach(arg => {
     let { prefix, key, value } = parseArg(arg);
-    console.log(prefix, key, value);
     if ( !(prefix === undefined || key === undefined) ) {
       resultDict[key] = (value === undefined) ? defaultValue : parseValue(value);
     }
