@@ -75,27 +75,39 @@ function parseArg(arg, prefix = "-") {
   const regExp = new RegExp(`^(${prefix}*)?([^=]*)?(=)?(.*)?$`, "s");
   const result = arg.match(regExp) || [];
   if (result[3] !== undefined) result[4] = result[4] || "";
-  return { prefix: result[1], key: result[2], value: result[4] }
+  return { key: result[2], value: result[4], prefix: result[1], arg }
 }
 
 function parseArgs(
-  args = process.argv.slice(2),
-  {
-    defaultValue = true
-  } = {}
+  callback = (key, value, prefix, arg) => ({ key, value }),
+  args = process.argv.slice(2)
 ) {
-
   const resultDict = {};
-
   args.forEach(arg => {
-    let { prefix, key, value } = parseArg(arg);
-    console.log(prefix, key, value);
-    if ( !(prefix === undefined || key === undefined) ) {
-      resultDict[key] = (value === undefined) ? defaultValue : parseValue(value);
-    }
+    const parsedR = parseArg(arg);
+    const callbackR = callback(parsedR.key, parsedR.value, parsedR.prefix, arg);
+    if (typeof callbackR === "object") resultDict[callbackR.key] = callbackR.value;
   });
-
   return resultDict;
 }
 
-module.exports = parseArgs;
+function argsParser(options = {}, args = process.argv.slice(2)) {
+  const {
+    defaultValue = true,
+    valueToJS = true
+  } = options;
+
+  return parseArgs((key, value, prefix) => {
+    if ( !(prefix === undefined || key === undefined) ) {
+      const _value = (value === undefined)
+        ? defaultValue
+        : (valueToJS)
+          ? parseValue(value)
+          : value;
+
+      return { key, value: _value }
+    }
+  }, args);
+}
+
+module.exports = argsParser;
