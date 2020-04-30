@@ -26,6 +26,7 @@ function parseBoolean(value) {
 }
 
 function parseNumber(value) {
+  if (value === "") return fail(value);
   if (value === "NaN") return success(NaN);
   if (value === "Infinity") return success(Infinity);
   if (value === "-Infinity") return success(-Infinity);
