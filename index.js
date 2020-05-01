@@ -79,12 +79,13 @@ function parseArg(arg, prefix = "-") {
 }
 
 function parseArgs(
+  args = process.argv.slice(2),
   callback = (key, value, prefix, arg) => ({ key, value }),
-  args = process.argv.slice(2)
+  prefix = "-"
 ) {
   const resultDict = {};
   args.forEach(arg => {
-    const parsedR = parseArg(arg);
+    const parsedR = parseArg(arg, prefix);
     const callbackR = callback(parsedR.key, parsedR.value, parsedR.prefix, arg);
     if (typeof callbackR === "object") resultDict[callbackR.key] = callbackR.value;
   });
