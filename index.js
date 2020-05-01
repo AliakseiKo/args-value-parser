@@ -1,3 +1,17 @@
+function escape(str, chars = [], safety = true) {
+  (chars = chars.slice()).push("\\");
+
+  const regExpChars = "\\" + escape.regExp.join("\\") + "\\\\";
+  _chars = (chars.join()).replace( new RegExp(`([${regExpChars}])`, "g"), "\\$1" );
+
+  return str.replace( new RegExp(`[${_chars}]`, "g"), (match, offset, input) => {
+    if ( safety && (match === "\\" || input[offset - 1] === "\\") ) return match;
+    return "\\" + match;
+  });
+}
+
+escape.regExp = ["^", "$", ".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
+
 function success(value) {
   return { succeed: true, value };
 }
@@ -95,11 +109,14 @@ function parseArgs(
 function argsParser(options = {}, args = process.argv.slice(2)) {
   const {
     defaultValue = true,
-    valueToJS = true
+    valueToJS = true,
+    prefix = "-"
   } = options;
 
-  return parseArgs((key, value, prefix) => {
-    if ( !(prefix === undefined || key === undefined) ) {
+  const _prefix = escape(prefix, escape.regExp);
+
+  return parseArgs(args, (key, value, prefix) => {
+    if ( !(prefix === "" || key === undefined) ) {
       const _value = (value === undefined)
         ? defaultValue
         : (valueToJS)
@@ -108,7 +125,7 @@ function argsParser(options = {}, args = process.argv.slice(2)) {
 
       return { key, value: _value }
     }
-  }, args);
+  }, _prefix);
 }
 
 module.exports = argsParser;
