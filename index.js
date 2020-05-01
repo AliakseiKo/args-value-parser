@@ -72,10 +72,10 @@ function parseValue(value) {
 }
 
 function parseArg(arg, prefix = "-") {
-  const regExp = new RegExp(`^(${prefix}*)?([^=]*)?(=)?(.*)?$`, "s");
+  const regExp = new RegExp(`^([${prefix}]*)([^=]*)(=)?(.*)?$`, "s");
   const result = arg.match(regExp) || [];
   if (result[3] !== undefined) result[4] = result[4] || "";
-  return { key: result[2], value: result[4], prefix: result[1], arg }
+  return { key: result[2], value: result[4], prefix: result[1], arg };
 }
 
 function parseArgs(
