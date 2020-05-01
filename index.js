@@ -1,10 +1,31 @@
-escape.regExp = ["^", "$", ".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
+function cacher(func, hashFunc) {
+  const cache = new Map();
+  const cachedFunc = function (...args) {
+    const hash = hashFunc(...args);
+    let result;
+    if ((result = cache.get(hash)) !== undefined) return result;
+    const newResult = func.call(this, ...args);
+    const newHash = hashFunc(...args);
+    cache.set(newHash, newResult);
+    return newResult;
+  }
+
+  Object.setPrototypeOf(cachedFunc, func);
+
+  return cachedFunc;
+}
+
 function escape(str, chars = [], safety = true) {
-  const regExpChars = "\\" + escape.regExp.join("\\") + "\\\\";
-  _chars = (chars.join()).replace( new RegExp(`([${regExpChars}])`, "g"), "\\$&" );
+  _chars = (chars.join()).replace( new RegExp(`([${escape.regExpStr}])`, "g"), "\\$&" );
   const regExp = (safety) ? `(?<!\\\\)[${_chars}]|\\\\(?![${_chars}]|\\\\)` : `[${_chars}]|\\\\`;
   return str.replace( new RegExp(regExp, "g"), "\\$&");
 }
+escape.regExp = ["^", "$", ".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
+escape.regExpStr = "\\" + escape.regExp.join("\\") + "\\\\";
+escape = cacher(
+  escape,
+  (str, chars = [], safety = true) => `[${str}][${chars.join("")}][${safety && safety.toString()}]`
+);
 
 function success(value) {
   return { succeed: true, value };
@@ -80,6 +101,7 @@ function parseValue(value) {
 }
 
 function parseArg(arg, prefix = "-") {
+  prefix = escape(prefix, escape.regExp);
   const regExp = new RegExp(`^([${prefix}]*)([^=]*)(=)?(.*)?$`, "s");
   const result = arg.match(regExp) || [];
   if (result[3] !== undefined) result[4] = result[4] || "";
@@ -124,7 +146,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
       _keys[key].aliases.forEach(alias => aliasDict[_keys[key].prefix + alias] = key);
   }
 
-  const _prefixStr = escape( Array.from( prefixSet.values() ).join(""), escape.regExp );
+  const _prefixStr = Array.from( prefixSet.values() ).join("")
 
   return parseArgs(args, (key, value, prefix) => {
     if (key === "") return;
