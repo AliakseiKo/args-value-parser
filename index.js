@@ -100,26 +100,54 @@ function parseArgs(
   return resultDict;
 }
 
-function argsParser(options = {}, args = process.argv.slice(2)) {
-  const {
-    defaultValue = true,
-    valueToJS = true,
-    prefix = "-"
-  } = options;
+function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
+  defaultOptions = { defaultValue: true, valueToJS: true, prefix: "-" };
+  const _options = Object.create(defaultOptions, Object.getOwnPropertyDescriptors(options) );
+  const _keys = {};
+  const prefixSet = new Set();
+  const aliasDict = {};
 
-  const _prefix = escape(prefix, escape.regExp);
+  _options.prefix = _options.prefix.charAt(0);
+  prefixSet.add(_options.prefix);
+
+  // init keys and aliasDict
+  for (const key in keys) {
+    if (Object.prototype.toString.call(keys[key]) === "[object Object]")
+      _keys[key] = Object.create( _options, Object.getOwnPropertyDescriptors(keys[key]) );
+
+    _keys[key].prefix = _keys[key].prefix.charAt(0);
+    prefixSet.add(_keys[key].prefix);
+
+    aliasDict[_keys[key].prefix.repeat(2) + key] = key;
+
+    if (Array.isArray(_keys[key].aliases))
+      _keys[key].aliases.forEach(alias => aliasDict[_keys[key].prefix + alias] = key);
+  }
+
+  const _prefixStr = escape( Array.from( prefixSet.values() ).join(""), escape.regExp );
 
   return parseArgs(args, (key, value, prefix) => {
-    if ( !(prefix === "" || key === undefined) ) {
-      const _value = (value === undefined)
-        ? defaultValue
-        : (valueToJS)
-          ? parseValue(value)
-          : value;
+    if (key === "") return;
+    const __key = prefix + key;
+    let known = false;
 
-      return { key, value: _value }
-    }
-  }, _prefix);
+    if (aliasDict[__key]) {
+      known = true;
+      key = aliasDict[__key];
+    } else if (_options.prefix === "") {
+      key = __key;
+    } else if (prefix.charAt(0) === _options.prefix && prefix.length < 3) {
+      if (_keys[key]) key = __key;
+    } else return;
+
+    value = (value === undefined)
+      ? (known ? _keys[key].defaultValue : _options.defaultValue)
+      : (known ? _keys[key].valueToJS : _options.valueToJS)
+        ? parseValue(value)
+        : value;
+
+    return { key, value };
+  }, _prefixStr);
 }
 
 module.exports = argsParser;
