@@ -1,16 +1,10 @@
-function escape(str, chars = [], safety = true) {
-  (chars = chars.slice()).push("\\");
-
-  const regExpChars = "\\" + escape.regExp.join("\\") + "\\\\";
-  _chars = (chars.join()).replace( new RegExp(`([${regExpChars}])`, "g"), "\\$1" );
-
-  return str.replace( new RegExp(`[${_chars}]`, "g"), (match, offset, input) => {
-    if ( safety && (match === "\\" || input[offset - 1] === "\\") ) return match;
-    return "\\" + match;
-  });
-}
-
 escape.regExp = ["^", "$", ".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
+function escape(str, chars = [], safety = true) {
+  const regExpChars = "\\" + escape.regExp.join("\\") + "\\\\";
+  _chars = (chars.join()).replace( new RegExp(`([${regExpChars}])`, "g"), "\\$&" );
+  const regExp = (safety) ? `(?<!\\\\)[${_chars}]|\\\\(?![${_chars}]|\\\\)` : `[${_chars}]|\\\\`;
+  return str.replace( new RegExp(regExp, "g"), "\\$&");
+}
 
 function success(value) {
   return { succeed: true, value };
