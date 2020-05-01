@@ -140,10 +140,12 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
       if (_keys[key]) key = __key;
     } else return;
 
-    value = (value === undefined)
-      ? (known ? _keys[key].defaultValue : _options.defaultValue)
-      : (known ? _keys[key].valueToJS : _options.valueToJS)
-        ? parseValue(value)
+    value = (known ? _keys[key].valueToJS : _options.valueToJS)
+      ? (value === undefined)
+        ? parseValue((known ? _keys[key].defaultValue : _options.defaultValue))
+        : parseValue(value)
+      : (value === undefined)
+        ? parseString(known ? _keys[key].defaultValue : _options.defaultValue).value
         : value;
 
     return { key, value };
