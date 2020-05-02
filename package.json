@@ -1,0 +1,24 @@
+{
+  "name": "args-parcer",
+  "version": "1.0.0",
+  "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AliakseiKo/args-parcer.git"
+  },
+  "keywords": ["args", "argv", "flags", "parser"],
+  "author": {
+    "name": "AliakseiKo",
+    "email": "AliakseiKo@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AliakseiKo/args-parcer/issues"
+  },
+  "homepage": "https://github.com/AliakseiKo/args-parcer#readme"
+}
