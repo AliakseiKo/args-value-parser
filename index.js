@@ -188,7 +188,8 @@ function parseArgs(
   args.forEach(arg => {
     const parsedR = parseArg(arg, prefix);
     const callbackR = callback(parsedR.key, parsedR.value, parsedR.prefix, arg);
-    if (typeof callbackR === "object") resultDict[callbackR.key] = callbackR.value;
+    if (typeof callbackR === "object" && "key" in callbackR && "value" in callbackR)
+      resultDict[callbackR.key] = callbackR.value;
   });
   return resultDict;
 }
