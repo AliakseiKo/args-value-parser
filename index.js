@@ -1,7 +1,7 @@
 const { escape } = require("./Utils");
 
 /**
- * Object which parseArg function returns
+ * The object which parse functions returns
  * @typedef {Object} valueParseResult
  * @property {boolean} successful
  * @property {*} value
@@ -131,7 +131,7 @@ function parseValue(value) {
 }
 
 /**
- * Object which parseArg function returns
+ * The object which parseArg function returns
  * @typedef {Object} parseResult
  * @property {string} key - key that was parsed from "--key=value" = "key"
  * @property {(string|undefined)} value - value that was parsed from "--key=value" "value"
@@ -154,7 +154,7 @@ function parseArg(arg, prefix = "-") {
 }
 
 /**
- * Result object which parseCallback function can return
+ * The result object which parseCallback function may return
  * @typedef {Object} parseCallbackResult
  * @property {string} key - key that was parsed from --key=value
  * @property {*} value - value that was parsed from --key=value
@@ -194,7 +194,7 @@ function parseArgs(
 }
 
 /**
- * Option object of argsParser function
+ * The option object of argsParser function
  * @typedef {Object} Options
  * @property {*} [defaultValue=true] - default value. use if argument value will not passed.
  * @property {boolean} [valueToJS=true] - parse string value to JS data type or structure.
@@ -202,7 +202,7 @@ function parseArgs(
  */
 
 /**
- * Describes key's own optins which Overrides global options for only this key
+ * The object describing key's own optins. Overrides global options for only this key
  * @typedef {Object} KeyDescription
  * @property {string[]} [aliases] - an array that contains aliases.
  * @property {*} [defaultValue] - default value. Overrides option.defaultValue
