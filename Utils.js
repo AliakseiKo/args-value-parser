@@ -37,7 +37,9 @@ function cacheDecorator(func, hashFunc) {
  */
 function escape(str, chars = [], safety = true) {
   const _chars = (chars.join()).replace( new RegExp(`([${escape.regExpStr}])`, "g"), "\\$&" );
-  const regExp = (safety) ? `(?<!\\\\)[${_chars}]|(?<!\\\\)\\\\(?![${_chars}]|\\\\)` : `[${_chars}]|\\\\`;
+  const regExp = (safety)
+    ? `(?<!\\\\)[${_chars}]|(?<!\\\\)\\\\(?![${_chars}]|\\\\)`
+    : `[${_chars}]|\\\\`;
   return str.replace( new RegExp(regExp, "g"), "\\$&");
 }
 
