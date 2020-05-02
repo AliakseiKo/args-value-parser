@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
   "main": "index.js",
-  "private": true,
   "type": "module",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
