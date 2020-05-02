@@ -181,7 +181,7 @@ function parseArg(arg, prefix = "-") {
  */
 function parseArgs(
   args = process.argv.slice(2),
-  callback = (key, value, prefix, arg) => ({ key, value }),
+  callback = (key, value) => ({ key, value }),
   prefix = "-"
 ) {
   const resultDict = {};
