@@ -36,7 +36,7 @@ function cacheDecorator(func, hashFunc) {
  * @returns {string} - the escaped string
  */
 function escape(str, chars = [], safety = true) {
-  _chars = (chars.join()).replace( new RegExp(`([${escape.regExpStr}])`, "g"), "\\$&" );
+  const _chars = (chars.join()).replace( new RegExp(`([${escape.regExpStr}])`, "g"), "\\$&" );
   const regExp = (safety) ? `(?<!\\\\)[${_chars}]|\\\\(?![${_chars}]|\\\\)` : `[${_chars}]|\\\\`;
   return str.replace( new RegExp(regExp, "g"), "\\$&");
 }
@@ -48,4 +48,4 @@ escape = cacheDecorator(escape, (str, chars = [], safety = true) => {
   return `[${str}][${chars.join("")}][${safety && safety.toString()}]`;
 });
 
-module.exports = { escape, cacheDecorator };
+export { escape, cacheDecorator };

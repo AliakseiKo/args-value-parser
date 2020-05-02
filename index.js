@@ -1,4 +1,4 @@
-const { escape } = require("./Utils");
+import { escape } from "./Utils.js"
 
 /**
  * The object which parse functions returns
@@ -218,7 +218,7 @@ function parseArgs(
  * @returns {Object.<string, *>} result object that contains parsed arguments { keys: values }.
  */
 function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
-  defaultOptions = { defaultValue: true, valueToJS: true, prefix: "-" };
+  const defaultOptions = { defaultValue: true, valueToJS: true, prefix: "-" };
   const _options = Object.create(defaultOptions, Object.getOwnPropertyDescriptors(options) );
   const _keys = {};
   const prefixSet = new Set();
@@ -269,7 +269,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   }, _prefixStr);
 }
 
-module.exports = {
+export {
   argsParser, parseArgs, parseArg, parseValue,
   parseString, parseObject, parseArray,
   parseNumber, parseNull, parseUndefined

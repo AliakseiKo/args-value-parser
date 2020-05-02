@@ -4,6 +4,7 @@
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
   "main": "index.js",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
