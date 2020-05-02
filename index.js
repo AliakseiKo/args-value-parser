@@ -116,7 +116,7 @@ function parseString(value) {
 /**
  * Parses input value to JS data type or structure, if it is possible
  * @param {*} value
- * @returns {*} - if parsing was successful will be JS data type or structure else input value.
+ * @returns {valueParseResult} - if parsing was successful .value will be JS data type or structure else input value.
  */
 function parseValue(value) {
   let result;
@@ -127,7 +127,7 @@ function parseValue(value) {
   || (result = parseArray(value)).successful
   || (result = parseObject(value)).successful
   || (result = parseString(value)).successful;
-  return result.value;
+  return result;
 }
 
 /**
@@ -259,8 +259,8 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
 
     value = (known ? _keys[key].valueToJS : _options.valueToJS)
       ? (value === undefined)
-        ? parseValue((known ? _keys[key].defaultValue : _options.defaultValue))
-        : parseValue(value)
+        ? parseValue((known ? _keys[key].defaultValue : _options.defaultValue)).value
+        : parseValue(value).value
       : (value === undefined)
         ? parseString(known ? _keys[key].defaultValue : _options.defaultValue).value
         : value;
@@ -269,4 +269,8 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   }, _prefixStr);
 }
 
-module.exports = argsParser;
+module.exports = {
+  argsParser, parseArgs, parseArg, parseValue,
+  parseString, parseObject, parseArray,
+  parseNumber, parseNull, parseUndefined
+};
