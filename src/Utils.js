@@ -15,13 +15,14 @@ function cacheDecorator(func, hashFunc) {
   const cache = new Map();
   const cachedFunc = function (...args) {
     const hash = hashFunc(...args);
-    let result;
-    if ((result = cache.get(hash)) !== undefined) return result;
+    const result = cache.get(hash);
+    if (result !== undefined) return result;
+
     const newResult = func.call(this, ...args);
     const newHash = hashFunc(...args);
     cache.set(newHash, newResult);
     return newResult;
-  }
+  };
 
   Object.setPrototypeOf(cachedFunc, func);
 
@@ -36,18 +37,19 @@ function cacheDecorator(func, hashFunc) {
  * @returns {string} - the escaped string
  */
 function escape(str, chars = [], safety = true) {
-  const _chars = (chars.join()).replace( new RegExp(`([${escape.regExpStr}])`, "g"), "\\$&" );
-  const regExp = (safety)
+  const _chars = (chars.join()).replace(new RegExp(`([${escape.regExpStr}])`, 'g'), '\\$&');
+  const pattern = (safety)
     ? `(?<!\\\\)[${_chars}]|(?<!\\\\)\\\\(?![${_chars}]|\\\\)`
     : `[${_chars}]|\\\\`;
-  return str.replace( new RegExp(regExp, "g"), "\\$&");
+  return str.replace(new RegExp(pattern, 'g'), '\\$&');
 }
 
-escape.regExp = ["^", "$", ".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "|"];
-escape.regExpStr = "\\" + escape.regExp.join("\\") + "\\\\";
+escape.regExp = ['^', '$', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', '|'];
+escape.regExpStr = `\\${escape.regExp.join('\\')}\\\\`;
 
-escape = cacheDecorator(escape, (str, chars = [], safety = true) => {
-  return `[${str}][${chars.join("")}][${safety && safety.toString()}]`;
-});
+const cachedEscape = cacheDecorator(
+  escape,
+  (str, chars = [], safety = true) => `[${str}][${chars.join('')}][${safety && safety.toString()}]`
+);
 
-export { escape, cacheDecorator };
+export { cachedEscape as escape, cacheDecorator };

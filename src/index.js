@@ -1,4 +1,4 @@
-import { escape } from "./Utils.js"
+import { escape } from './utils.js';
 
 /**
  * The object which parse functions returns
@@ -22,17 +22,18 @@ function success(value) {
  * @returns {valueParseResult}
  */
 function fail(value) {
-  return  { successful: false, value };
+  return { successful: false, value };
 }
 
 /**
  * Parse input value to undefined data type if it is possible
  * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be undefined else input value.
+ * @returns {valueParseResult} - if parsing was successful .value will be
+ * undefined else input value.
  */
 function parseUndefined(value) {
-  if (typeof value === "undefined") return success(value);
-  if (value === "undefined") return success(undefined);
+  if (typeof value === 'undefined') return success(value);
+  if (value === 'undefined') return success(undefined);
   return fail(value);
 }
 
@@ -43,7 +44,7 @@ function parseUndefined(value) {
  */
 function parseNull(value) {
   if (value === null) return success(null);
-  if (value === "null") return success(null);
+  if (value === 'null') return success(null);
   return fail(value);
 }
 
@@ -53,9 +54,9 @@ function parseNull(value) {
  * @returns {valueParseResult} - if parsing was successful .value will be boolean else input value.
  */
 function parseBoolean(value) {
-  if (typeof value === "boolean") return  success(value);
-  if (value === "true") return success(true);
-  if (value === "false") return success(false);
+  if (typeof value === 'boolean') return success(value);
+  if (value === 'true') return success(true);
+  if (value === 'false') return success(false);
   return fail(value);
 }
 
@@ -65,12 +66,12 @@ function parseBoolean(value) {
  * @returns {valueParseResult} - if parsing was successful .value will be number else input value.
  */
 function parseNumber(value) {
-  if (value === "") return fail(value);
-  if (value === "NaN") return success(NaN);
-  if (value === "Infinity") return success(Infinity);
-  if (value === "-Infinity") return success(-Infinity);
+  if (value === '') return fail(value);
+  if (value === 'NaN') return success(NaN);
+  if (value === 'Infinity') return success(Infinity);
+  if (value === '-Infinity') return success(-Infinity);
   const number = Number(value);
-  if (!isNaN(number)) return success(number);
+  if (!Number.isNaN(number)) return success(number);
   return fail(value);
 }
 
@@ -81,9 +82,12 @@ function parseNumber(value) {
  */
 function parseArray(value) {
   if (Array.isArray(value)) return success(value);
-  if (typeof value === "string" && /^\[.*\]$/s.test(value)) {
-    try { return success( eval(`(function(){return${value}})()`) ); }
-    catch { return fail(value); }
+  if (typeof value === 'string' && /^\[.*\]$/s.test(value)) {
+    try {
+      return success(eval(`(function(){return${value}})()`));
+    } catch (e) {
+      return fail(value);
+    }
   }
   return fail(value);
 }
@@ -94,10 +98,13 @@ function parseArray(value) {
  * @returns {valueParseResult} - if parsing was successful .value will be object else input value.
  */
 function parseObject(value) {
-  if (!Array.isArray(value) && typeof value === "object") return success(value);
-  if (typeof value === "string" && /^\{.*\}$/s.test(value)) {
-    try { return success( eval(`(function(){return${value}})()`) ); }
-    catch { return fail(value); }
+  if (!Array.isArray(value) && typeof value === 'object') return success(value);
+  if (typeof value === 'string' && /^\{.*\}$/s.test(value)) {
+    try {
+      return success(eval(`(function(){return${value}})()`));
+    } catch (e) {
+      return fail(value);
+    }
   }
   return fail(value);
 }
@@ -108,18 +115,20 @@ function parseObject(value) {
  * @returns {*} - if parsing was successful .value will be string else input value.
  */
 function parseString(value) {
-  if (typeof value === "string") return success( value.replace(/^(['"`])(.*)\1$/s, "$2") );
-  if (typeof value === "object") return success( JSON.stringify(value) );
-  return success( value.toString() );
+  if (typeof value === 'string') return success(value.replace(/^(['"`])(.*)\1$/s, '$2'));
+  if (typeof value === 'object') return success(JSON.stringify(value));
+  return success(value.toString());
 }
 
 /**
  * Parses input value to JS data type or structure, if it is possible
  * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be JS data type or structure else input value.
+ * @returns {valueParseResult} - if parsing was successful .value will be
+ * JS data type or structure else input value.
  */
 function parseValue(value) {
   let result;
+  // eslint-disable-next-line no-unused-expressions
   (result = parseUndefined(value)).successful
   || (result = parseNull(value)).successful
   || (result = parseBoolean(value)).successful
@@ -133,23 +142,23 @@ function parseValue(value) {
 /**
  * The object which parseArg function returns
  * @typedef {Object} parseResult
- * @property {string} key - key that was parsed from "--key=value" = "key"
- * @property {(string|undefined)} value - value that was parsed from "--key=value" "value"
- * @property {string} prefix - prefix that was parsed from "--key=value" = "--"
- * @property {string} arg - source argument "--key=value"
+ * @property {string} key - key that was parsed from '--key=value' = 'key'
+ * @property {(string|undefined)} value - value that was parsed from '--key=value' 'value'
+ * @property {string} prefix - prefix that was parsed from '--key=value' = '--'
+ * @property {string} arg - source argument '--key=value'
  */
 
 /**
  * Parse argument like --key=value and returns object { key, value, prefix, arg }
- * @param {string} arg - examples: "--key=value", "key=value", "key", "abc", "123", etc
- * @param {string} [prefix="-"] - prefix of argument
+ * @param {string} arg - examples: '--key=value', 'key=value', 'key', 'abc', '123', etc
+ * @param {string} [prefix='-'] - prefix of argument
  * @returns {parseResult} - object constists key, value, prefix, arg.
  */
-function parseArg(arg, prefix = "-") {
-  prefix = escape(prefix, escape.regExp);
-  const regExp = new RegExp(`^([${prefix}]*)([^=]*)(=)?(.*)?$`, "s");
+function parseArg(arg, prefix = '-') {
+  const _prefix = escape(prefix, escape.regExp);
+  const regExp = new RegExp(`^([${_prefix}]*)([^=]*)(=)?(.*)?$`, 's');
   const result = arg.match(regExp) || [];
-  if (result[3] !== undefined) result[4] = result[4] || "";
+  if (result[3] !== undefined) result[4] = result[4] || '';
   return { key: result[2], value: result[4], prefix: result[1], arg };
 }
 
@@ -182,14 +191,15 @@ function parseArg(arg, prefix = "-") {
 function parseArgs(
   args = process.argv.slice(2),
   callback = (key, value) => ({ key, value }),
-  prefix = "-"
+  prefix = '-'
 ) {
   const resultDict = {};
-  args.forEach(arg => {
+  args.forEach((arg) => {
     const parsedR = parseArg(arg, prefix);
     const callbackR = callback(parsedR.key, parsedR.value, parsedR.prefix, arg);
-    if (typeof callbackR === "object" && "key" in callbackR && "value" in callbackR)
+    if (typeof callbackR === 'object' && 'key' in callbackR && 'value' in callbackR) {
       resultDict[callbackR.key] = callbackR.value;
+    }
   });
   return resultDict;
 }
@@ -199,7 +209,7 @@ function parseArgs(
  * @typedef {Object} Options
  * @property {*} [defaultValue=true] - default value. use if argument value will not passed.
  * @property {boolean} [valueToJS=true] - parse string value to JS data type or structure.
- * @property {string} [prefix=""] - prefix of argument --key=value [--] - prefix
+ * @property {string} [prefix=''] - prefix of argument '--key=value' [--] - prefix
  */
 
 /**
@@ -208,7 +218,7 @@ function parseArgs(
  * @property {string[]} [aliases] - an array that contains aliases.
  * @property {*} [defaultValue] - default value. Overrides option.defaultValue
  * @property {boolean} [valueToJS] - parse string value to JS data type or structure. Overrides option.valueToJS
- * @property {string} [prefix] - prefix of argument --key=value [--] - prefix. Overrides option.valueToJS
+ * @property {string} [prefix] - prefix of argument '--key=value' [--] - prefix. Overrides option.valueToJS
  */
 
 /**
@@ -219,8 +229,8 @@ function parseArgs(
  * @returns {Object.<string, *>} result object that contains parsed arguments { keys: values }.
  */
 function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
-  const defaultOptions = { defaultValue: true, valueToJS: true, prefix: "-" };
-  const _options = Object.create(defaultOptions, Object.getOwnPropertyDescriptors(options) );
+  const defaultOptions = { defaultValue: true, valueToJS: true, prefix: '-' };
+  const _options = Object.create(defaultOptions, Object.getOwnPropertyDescriptors(options));
   const _keys = {};
   const prefixSet = new Set();
   const aliasDict = {};
@@ -228,35 +238,38 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   _options.prefix = _options.prefix.charAt(0);
   prefixSet.add(_options.prefix);
 
-  // init keys and aliasDict
-  for (const key in keys) {
-    if (Object.prototype.toString.call(keys[key]) === "[object Object]")
-      _keys[key] = Object.create( _options, Object.getOwnPropertyDescriptors(keys[key]) );
+  Object.keys(keys).forEach((key) => {
+    if (Object.prototype.toString.call(keys[key]) === '[object Object]') {
+      _keys[key] = Object.create(_options, Object.getOwnPropertyDescriptors(keys[key]));
+    }
 
     _keys[key].prefix = _keys[key].prefix.charAt(0);
     prefixSet.add(_keys[key].prefix);
 
     aliasDict[_keys[key].prefix.repeat(2) + key] = key;
 
-    if (Array.isArray(_keys[key].aliases))
-      _keys[key].aliases.forEach(alias => aliasDict[_keys[key].prefix + alias] = key);
-  }
+    if (Array.isArray(_keys[key].aliases)) {
+      _keys[key].aliases.forEach((alias) => {
+        aliasDict[_keys[key].prefix + alias] = key;
+      });
+    }
+  });
 
-  const _prefixStr = Array.from( prefixSet.values() ).join("")
+  const _prefixStr = Array.from(prefixSet.values()).join('');
 
   return parseArgs(args, (key, value, prefix) => {
-    if (key === "") return;
+    if (key === '') return undefined;
     const __key = prefix + key;
     let known = false;
 
     if (aliasDict[__key]) {
       known = true;
       key = aliasDict[__key];
-    } else if (_options.prefix === "") {
+    } else if (_options.prefix === '') {
       key = __key;
     } else if (prefix.charAt(0) === _options.prefix && prefix.length < 3) {
       if (_keys[key]) key = __key;
-    } else return;
+    } else return undefined;
 
     value = (known ? _keys[key].valueToJS : _options.valueToJS)
       ? (value === undefined)
