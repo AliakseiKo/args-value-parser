@@ -27,6 +27,7 @@ function cacheDecorator(func, hashFunc) {
   };
 
   Object.setPrototypeOf(cachedFunc, func);
+  Object.defineProperty(cachedFunc, "name", { value: func.name });
 
   return cachedFunc;
 }
