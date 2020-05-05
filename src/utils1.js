@@ -13,8 +13,10 @@
  */
 function cacheDecorator(func, hashFunc) {
   const cache = new Map();
+
   const cachedFunc = function (...args) {
     const hash = hashFunc(...args);
+
     const result = cache.get(hash);
     if (result !== undefined) return result;
 
