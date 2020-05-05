@@ -52,4 +52,4 @@ const cachedEscape = cacheDecorator(
   (str, chars = [], safety = true) => `[${str}][${chars.join('')}][${safety && safety.toString()}]`
 );
 
-export { cachedEscape as escape, cacheDecorator };
+module.exports = { escape: cachedEscape, cacheDecorator };

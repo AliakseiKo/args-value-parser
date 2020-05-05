@@ -1,4 +1,4 @@
-import { escape } from './utils.js';
+const { escape } = require('./utils');
 
 /**
  * The object which parse functions returns
@@ -283,8 +283,15 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   }, _prefixStr);
 }
 
-export {
-  argsParser, parseArgs, parseArg, parseValue,
-  parseString, parseObject, parseArray,
-  parseNumber, parseNull, parseUndefined
+module.exports = {
+  argsParser,
+  parseArgs,
+  parseArg,
+  parseValue,
+  parseString,
+  parseObject,
+  parseArray,
+  parseNumber,
+  parseNull,
+  parseUndefined
 };
