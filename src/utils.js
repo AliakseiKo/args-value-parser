@@ -26,7 +26,6 @@ function cacheDecorator(func, hashFunc = (...args) => args.toString()) {
     return newResult;
   };
 
-  Object.setPrototypeOf(cachedFunc, func);
   Object.defineProperty(cachedFunc, "name", { value: func.name });
 
   return cachedFunc;
@@ -39,32 +38,32 @@ function cacheDecorator(func, hashFunc = (...args) => args.toString()) {
  * @param {boolean} safety - do not escape already escaped chars
  * @returns {string} - the escaped string
  */
-function escape(str, chars = ['\\'], safety = true) {
-  return str.replace(
-    new RegExp(`[${
-      chars.join('').replace(new RegExp(`[${escape.regExpStr}]`, 'g'), '\\$&')
-    }]`, 'g'),
-    (match, offset, input) => {
-      if (!safety) return `\\${match}`;
-      const prevChar = input.charAt(offset - 1);
-      if (prevChar === '\\') return match;
-      const nextChar = input.charAt(offset + 1);
-      if (match === '\\') {
-        if (nextChar !== '\\' && chars.includes(nextChar)) return match;
-        let count = 0;
-        let currentChar;
-        while ((++offset, ++count, (currentChar = input.charAt(offset)) === '\\'));
-        if (chars.includes(currentChar)) ++count;
-        if (!(count % 2)) return match;
+const escape = cacheDecorator(
+  function (str, chars = ['\\'], safety = true) {
+    return str.replace(
+      new RegExp(`[${
+        chars.join('').replace(new RegExp(`[${escape.regExpStr}]`, 'g'), '\\$&')
+      }]`, 'g'),
+      (match, offset, input) => {
+        if (!safety) return `\\${match}`;
+        const prevChar = input.charAt(offset - 1);
+        if (prevChar === '\\') return match;
+        const nextChar = input.charAt(offset + 1);
+        if (match === '\\') {
+          if (nextChar !== '\\' && chars.includes(nextChar)) return match;
+          let count = 0;
+          let currentChar;
+          while ((++offset, ++count, (currentChar = input.charAt(offset)) === '\\'));
+          if (chars.includes(currentChar)) ++count;
+          if (!(count % 2)) return match;
+        }
+        return `\\${match}`;
       }
-      return `\\${match}`;
-    }
-  );
-}
+    );
+  }
+);
 
 escape.regExp = ['^', '$', '|', '.', '*', '+', '?', '(', ')', '[', ']', '{', '}', "\\"];
 escape.regExpStr = `\\${escape.regExp.join('\\')}`;
 
-const cachedEscape = cacheDecorator(escape);
-
-module.exports = { escape: cachedEscape, cacheDecorator };
+module.exports = { escape, cacheDecorator };
