@@ -86,7 +86,6 @@
     "array-callback-return": "warn",
     "block-scoped-var": "warn",
     "class-methods-use-this": "warn",
-    "consistent-return": "warn",
     "require-await": "warn", // may be off?
     "vars-on-top": "warn",
     "wrap-iife": "warn",
@@ -128,5 +127,6 @@
     // "comma-spacing": "warn",
     // "computed-property-spacing": "warn",
     // "yoda": "warn",
+    // "consistent-return": "warn",
   }
 }
