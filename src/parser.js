@@ -1,142 +1,14 @@
+const JSON5 = require('json5');
 const { escape } = require('./utils');
-
-/**
- * The object which parse functions returns
- * @typedef {Object} valueParseResult
- * @property {boolean} successful
- * @property {*} value
- */
-
-/**
- * Returns valueParseResult with successful property equal true and value property equal input value
- * @param {*} value
- * @returns {valueParseResult}
- */
-function success(value) {
-  return { successful: true, value };
-}
-
-/**
- * Returns valueParseResult with successful property equal false and value property equal input value
- * @param {*} value
- * @returns {valueParseResult}
- */
-function fail(value) {
-  return { successful: false, value };
-}
-
-/**
- * Parse input value to undefined data type if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be
- * undefined else input value.
- */
-function parseUndefined(value) {
-  if (typeof value === 'undefined') return success(value);
-  if (value === 'undefined') return success(undefined);
-  return fail(value);
-}
-
-/**
- * Parse input value to null if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be null else input value.
- */
-function parseNull(value) {
-  if (value === null) return success(null);
-  if (value === 'null') return success(null);
-  return fail(value);
-}
-
-/**
- * Parse input value to boolean data type if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be boolean else input value.
- */
-function parseBoolean(value) {
-  if (typeof value === 'boolean') return success(value);
-  if (value === 'true') return success(true);
-  if (value === 'false') return success(false);
-  return fail(value);
-}
-
-/**
- * Parse input value to number data type if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be number else input value.
- */
-function parseNumber(value) {
-  if (value === '') return fail(value);
-  if (value === 'NaN') return success(NaN);
-  if (value === 'Infinity') return success(Infinity);
-  if (value === '-Infinity') return success(-Infinity);
-  const number = Number(value);
-  if (!Number.isNaN(number)) return success(number);
-  return fail(value);
-}
-
-/**
- * Parse input value to array data structure if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be array else input value.
- */
-function parseArray(value) {
-  if (Array.isArray(value)) return success(value);
-  if (typeof value === 'string' && /^\[.*\]$/s.test(value)) {
-    try {
-      return success(eval(`(function(){return${value}})()`));
-    } catch (e) {
-      return fail(value);
-    }
-  }
-  return fail(value);
-}
-
-/**
- * Parse input value to object data type if it is possible
- * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be object else input value.
- */
-function parseObject(value) {
-  if (!Array.isArray(value) && typeof value === 'object') return success(value);
-  if (typeof value === 'string' && /^\{.*\}$/s.test(value)) {
-    try {
-      return success(eval(`(function(){return${value}})()`));
-    } catch (e) {
-      return fail(value);
-    }
-  }
-  return fail(value);
-}
-
-/**
- * Parse input value to string data type if it is possible
- * @param {*} value
- * @returns {*} - if parsing was successful .value will be string else input value.
- */
-function parseString(value) {
-  if (typeof value === 'string') return success(value.replace(/^(['"`])(.*)\1$/s, '$2'));
-  if (typeof value === 'object') return success(JSON.stringify(value));
-  return success(value.toString());
-}
 
 /**
  * Parses input value to JS data type or structure, if it is possible
  * @param {*} value
- * @returns {valueParseResult} - if parsing was successful .value will be
- * JS data type or structure else input value.
+ * @returns {*} - return a JS data type or structure if the parsing was successful, otherwise the input value.
  */
 function parseValue(value) {
-  let result;
-  // eslint-disable-next-line no-unused-expressions
-  (result = parseUndefined(value)).successful
-  || (result = parseNull(value)).successful
-  || (result = parseBoolean(value)).successful
-  || (result = parseNumber(value)).successful
-  || (result = parseArray(value)).successful
-  || (result = parseObject(value)).successful
-  || (result = parseString(value)).successful;
-  return result;
+  try { return JSON5.parse(value); }
+  catch (e) { return value; }
 }
 
 /**
@@ -271,27 +143,14 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
       if (_keys[key]) key = __key;
     } else return undefined;
 
-    value = (known ? _keys[key].valueToJS : _options.valueToJS)
-      ? (value === undefined)
-        ? parseValue((known ? _keys[key].defaultValue : _options.defaultValue)).value
-        : parseValue(value).value
-      : (value === undefined)
-        ? parseString(known ? _keys[key].defaultValue : _options.defaultValue).value
+    value = (value === undefined)
+      ? (known ? _keys[key].defaultValue : _options.defaultValue)
+      : (known ? _keys[key].valueToJS : _options.valueToJS)
+        ? parseValue(value)
         : value;
 
     return { key, value };
   }, _prefixStr);
 }
 
-module.exports = {
-  argsParser,
-  parseArgs,
-  parseArg,
-  parseValue,
-  parseString,
-  parseObject,
-  parseArray,
-  parseNumber,
-  parseNull,
-  parseUndefined
-};
+module.exports = { argsParser, parseArgs, parseArg, parseValue };
