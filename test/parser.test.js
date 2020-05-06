@@ -212,11 +212,6 @@ describe('parseArg function', () => {
     expect(parseArg('=', ['\\', '$']))
       .toEqual({ key: '', value: '', prefix: '', arg: '=' });
   });
-
-  test('must parse prefixes in the given order', () => {
-    expect(parseArg('-_key=value', ['-', '-_'])).toEqual({ key: '_key', value: 'value', prefix: '-', arg: '-_key=value' });
-    expect(parseArg('-_key=value', ['-_', '-'])).toEqual({ key: 'key', value: 'value', prefix: '-_', arg: '-_key=value' });
-  });
 });
 
 describe('parseArgs function', () => {
@@ -235,7 +230,7 @@ describe('argsParser function', () => {
   test('must parse arguments correctly with default parameters', () => {
     expect(argsParser([
       '--key1',
-      '-key2='
+      '--key2='
     ])).toEqual({
       key1: true,
       key2: ''
@@ -244,18 +239,20 @@ describe('argsParser function', () => {
     // rewrite the same keys
     expect(argsParser([
       '--key1=5',
-      '-key1=10'
+      '--key1=10'
     ])).toEqual({
       key1: 10
     });
 
     expect(argsParser([
       'key1=5',
-      '---key1=5',
-      '_key2=10',
-      '__key3=15',
-      '___key4=20'
-    ])).toEqual({});
+      '-key2=10',
+      '--key3=15',
+      '---key4=20',
+      '_key5=25',
+      '__key6=30',
+      '___key7=35'
+    ])).toEqual({ key3: 15 });
   });
 
   test('must parse arguments correctly with given defaultValue', () => {
@@ -374,6 +371,7 @@ describe('argsParser function', () => {
         '--key11=Hello World!',
         '--key12={ name: "alex", \'age\': 22, "married": false }',
         '--key13=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+
         '--key14="null"',
         '--key15=\'true\'',
         '--key16="false"',
@@ -405,6 +403,7 @@ describe('argsParser function', () => {
       key11: 'Hello World!',
       key12: { name: 'alex', age: 22, married: false },
       key13: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
+
       key14: 'null',
       key15: 'true',
       key16: 'false',
@@ -487,18 +486,18 @@ describe('argsParser function', () => {
   test('must parse arguments correctly with given prefix', () => {
     expect(argsParser(
       [
-        '+++key1=5',
-        '++key2=10',
-        '+key3=15',
-        '---key4=20',
-        '--key5=25',
-        '-key6=30'
+        'key1=5',
+        '+key2=10',
+        '++key3=15',
+        '+++key4=20',
+        '-key5=25',
+        '--key6=30',
+        '---key7=35',
       ],
       {
         prefix: '+'
       }
     )).toEqual({
-      key2: 10,
       key3: 15
     });
   });
@@ -506,7 +505,13 @@ describe('argsParser function', () => {
   test('must parse arguments correctly with keys', () => {
     // overriding global options
     expect(argsParser(
-      ['--key1', '--key2', '--key3=null', '--key4=false', '__key4=[1, 2, 3]'],
+      [
+        '--key1',
+        '--key2',
+        '--key3=null',
+        '--key4=false',
+        '__key4=[1, 2, 3]'
+      ],
       {
         defaultValue: true,
         valueToJS: true,
@@ -533,18 +538,21 @@ describe('argsParser function', () => {
 
     // with global prefix
     expect(argsParser(
-      ['--key1', '--key2', '--key3=null', '--key4=false', '__key4', '__key5=[1, 2, 3]', 'somekey=Hello World!'],
+      [
+        '--key1',
+        '__key2=[1, 2, 3]',
+        '__key3=0.5',
+        '__key4=null',
+        'somekey=Hello World!'
+      ],
       {
         prefix: '-'
       },
       {
         key2: {
-          defaultValue: 10
+          prefix: '_'
         },
-        key3: {
-          valueToJS: false
-        },
-        '__key5': {
+        '__key3': {
           prefix: ''
         },
         somekey: {
@@ -553,32 +561,58 @@ describe('argsParser function', () => {
       }
     )).toEqual({
       key1: true,
-      key2: 10,
-      key3: 'null',
-      key4: false,
-      '__key5': [1, 2, 3],
+      key2: [1, 2, 3],
+      '__key3': 0.5,
       somekey: 'Hello World!'
     });
 
     // without global prefix
     expect(argsParser(
-      ['--key1', '--key2', '--key3=null', '--key4=false', '__key4=[1, 2, 3]', 'somekey=Hello World!'],
+      [
+        '--key1',
+        '__key2=[1, 2, 3]',
+        '__key3=0.5',
+        '__key4=null',
+        'somekey=Hello World!'
+      ],
       {
         prefix: ''
       },
       {
         key1: {
-          defaultValue: 10,
           prefix: '-'
+        },
+        key2: {
+          prefix: '_'
         }
       }
     )).toEqual({
-      key1: 10,
-      '--key2': true,
-      '--key3': null,
-      '--key4': false,
-      '__key4': [1, 2, 3],
-      somekey: 'Hello World!',
+      key1: true,
+      key2: [1, 2, 3],
+      '__key3': 0.5,
+      '__key4': null,
+      somekey: 'Hello World!'
     });
+
+    // aliases
+    // expect(argsParser(
+    //   ['--key1', '--key2', '--key3=null', '--key4=false', '__key4=[1, 2, 3]', 'somekey=Hello World!'],
+    //   {
+    //     prefix: ''
+    //   },
+    //   {
+    //     key1: {
+    //       defaultValue: 10,
+    //       prefix: '-'
+    //     }
+    //   }
+    // )).toEqual({
+    //   key1: 10,
+    //   '--key2': true,
+    //   '--key3': null,
+    //   '--key4': false,
+    //   '__key4': [1, 2, 3],
+    //   somekey: 'Hello World!',
+    // });
   });
 });

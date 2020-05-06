@@ -1,16 +1,5 @@
 const JSON5 = require('json5');
-const { escape, cacheDecorator } = require('./utils');
-
-const createRegExpFragment = cacheDecorator(
-  function createRegExpFragment(prefixes) {
-    const regExpFragment = prefixes.reduce((accumulator, prefix) => {
-        if (prefix) return `${accumulator}(${escape(prefix, escape.regExp, false)})+|`;
-        return accumulator;
-      }, '');
-
-    return regExpFragment.slice(0, -1);
-  }
-);
+const { escape } = require('./utils');
 
 /**
  * Parses input value to JS data type or structure, if it is possible
@@ -42,12 +31,11 @@ function parseValue(value) {
  * @returns {parseResult} - object constists key, value, prefix, arg.
  */
 function parseArg(arg, prefixes = ['-']) {
-  const regExpFragment = createRegExpFragment(prefixes);
+  const _prefixes = escape(prefixes.join(''), escape.regExp, false);
   const regExp = new RegExp(
-    `^(?<prefix>${regExpFragment})?(?<key>[^=]*)(?<sign>=)?(?<value>.*)?$`,
-    's'
+    `^(?<prefix>([${_prefixes}])\\2*)?(?<key>[^=]*)?(?<sign>=)?(?<value>.*)?$`, 's'
   );
-  let { key, value, prefix = '', sign } =  arg.match(regExp) && arg.match(regExp).groups || {};
+  let { prefix = '', key = '', value, sign } = (arg.match(regExp) || { groups: {} }).groups;
   if (sign) value = value || '';
   return { key, value, prefix, arg };
 }
@@ -150,7 +138,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   const _prefixes = Array.from(prefixSet.values());
 
   return parseArgs(args, (key, value, prefix) => {
-    if (key === '') return undefined;
+    if (key === '') return;
     const __key = prefix + key;
     let known = false;
 
@@ -159,9 +147,9 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
       key = aliasDict[__key];
     } else if (_options.prefix === '') {
       key = __key;
-    } else if (prefix.charAt(0) === _options.prefix && prefix.length < 3) {
+    } else if (prefix.charAt(0) === _options.prefix && prefix.length === 2) {
       if (_keys[key]) key = __key;
-    } else return undefined;
+    } else return;
 
     value = (value === undefined)
       ? (known ? _keys[key].defaultValue : _options.defaultValue)
