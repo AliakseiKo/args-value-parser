@@ -1,8 +1,9 @@
 {
-  "name": "args-parcer",
+  "name": "args-parser",
   "version": "1.0.0",
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
-  "main": "index.js",
+  "keywords": ["args", "argv", "flags", "parser"],
+  "main": "src/parser.js",
   "private": true,
   "scripts": {
     "lint": "eslint ./src/",
@@ -12,12 +13,6 @@
     "type": "git",
     "url": "git+https://github.com/AliakseiKo/args-parcer.git"
   },
-  "keywords": [
-    "args",
-    "argv",
-    "flags",
-    "parser"
-  ],
   "author": {
     "name": "AliakseiKo",
     "email": "AliakseiKo@gmail.com"
