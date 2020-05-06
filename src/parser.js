@@ -1,5 +1,16 @@
 const JSON5 = require('json5');
-const { escape } = require('./utils');
+const { escape, cacheDecorator } = require('./utils');
+
+const createRegExpFragment = cacheDecorator(
+  function createRegExpFragment(prefixes) {
+    const regExpFragment = prefixes.reduce((accumulator, prefix) => {
+        if (prefix) return `${accumulator}(${escape(prefix, escape.regExp, false)})+|`;
+        return accumulator;
+      }, '');
+
+    return regExpFragment.slice(0, -1);
+  }
+);
 
 /**
  * Parses input value to JS data type or structure, if it is possible
@@ -7,8 +18,12 @@ const { escape } = require('./utils');
  * @returns {*} - return a JS data type or structure if the parsing was successful, otherwise the input value.
  */
 function parseValue(value) {
-  try { return JSON5.parse(value); }
-  catch (e) { return value; }
+  try {
+    return JSON5.parse(value);
+  } catch (e) {
+    if (typeof value === 'string') return value.replace(/^(['"`])(.*)\1$/s, '$2');
+    return value;
+  }
 }
 
 /**
@@ -23,15 +38,18 @@ function parseValue(value) {
 /**
  * Parse argument like --key=value and returns object { key, value, prefix, arg }
  * @param {string} arg - examples: '--key=value', 'key=value', 'key', 'abc', '123', etc
- * @param {string} [prefix='-'] - prefix of argument
+ * @param {string[]} [prefix=['-']] - prefixes of argument
  * @returns {parseResult} - object constists key, value, prefix, arg.
  */
-function parseArg(arg, prefix = '-') {
-  const _prefix = escape(prefix, escape.regExp);
-  const regExp = new RegExp(`^([${_prefix}]*)([^=]*)(=)?(.*)?$`, 's');
-  const result = arg.match(regExp) || [];
-  if (result[3] !== undefined) result[4] = result[4] || '';
-  return { key: result[2], value: result[4], prefix: result[1], arg };
+function parseArg(arg, prefixes = ['-']) {
+  const regExpFragment = createRegExpFragment(prefixes);
+  const regExp = new RegExp(
+    `^(?<prefix>${regExpFragment})?(?<key>[^=]*)(?<sign>=)?(?<value>.*)?$`,
+    's'
+  );
+  let { key, value, prefix = '', sign } =  arg.match(regExp) && arg.match(regExp).groups || {};
+  if (sign) value = value || '';
+  return { key, value, prefix, arg };
 }
 
 /**
@@ -62,12 +80,14 @@ function parseArg(arg, prefix = '-') {
  */
 function parseArgs(
   args = process.argv.slice(2),
-  callback = (key, value) => ({ key, value }),
-  prefix = '-'
+  callback = (key, value, prefix) => {
+    if (prefix && key) return { key, value };
+  },
+  prefixes = ['-']
 ) {
   const resultDict = {};
   args.forEach((arg) => {
-    const parsedR = parseArg(arg, prefix);
+    const parsedR = parseArg(arg, prefixes);
     const callbackR = callback(parsedR.key, parsedR.value, parsedR.prefix, arg);
     if (typeof callbackR === 'object' && 'key' in callbackR && 'value' in callbackR) {
       resultDict[callbackR.key] = callbackR.value;
@@ -127,7 +147,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
     }
   });
 
-  const _prefixStr = Array.from(prefixSet.values()).join('');
+  const _prefixes = Array.from(prefixSet.values());
 
   return parseArgs(args, (key, value, prefix) => {
     if (key === '') return undefined;
@@ -150,7 +170,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
         : value;
 
     return { key, value };
-  }, _prefixStr);
+  }, _prefixes);
 }
 
 module.exports = { argsParser, parseArgs, parseArg, parseValue };
