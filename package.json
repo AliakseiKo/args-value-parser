@@ -2,7 +2,7 @@
   "name": "args-parser",
   "version": "1.0.0",
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
-  "keywords": ["args", "argv", "flags", "parser"],
+  "keywords": ["args", "argv", "flags", "key=value", "parser"],
   "main": "src/parser.js",
   "private": true,
   "scripts": {
