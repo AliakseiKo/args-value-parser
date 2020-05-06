@@ -230,10 +230,14 @@ describe('argsParser function', () => {
   test('must parse arguments correctly with default parameters', () => {
     expect(argsParser([
       '--key1',
-      '--key2='
+      '--key2=',
+      '--key3="null"',
+      '--key4=[0.5, +Infinity, false, [1, NaN, 3], { name: "alex", \'age\': 22, "married": false }, null]',
     ])).toEqual({
       key1: true,
-      key2: ''
+      key2: '',
+      key3: 'null',
+      key4: [0.5, +Infinity, false, [1, NaN, 3], { name: 'alex', age: 22, married: false }, null]
     });
 
     // rewrite the same keys
@@ -255,7 +259,7 @@ describe('argsParser function', () => {
     ])).toEqual({ key3: 15 });
   });
 
-  test('must parse arguments correctly with given defaultValue', () => {
+  test('must parse arguments correctly with given global defaultValue', () => {
     expect(argsParser(
       ['--key1', '--key2='],
       { defaultValue: undefined }
@@ -355,7 +359,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with given valueToJS', () => {
+  test('must parse arguments correctly with given global valueToJS', () => {
     expect(argsParser(
       [
         '--key1=null',
@@ -483,7 +487,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with given prefix', () => {
+  test('must parse arguments correctly with given global prefix', () => {
     expect(argsParser(
       [
         'key1=5',
@@ -595,24 +599,49 @@ describe('argsParser function', () => {
     });
 
     // aliases
-    // expect(argsParser(
-    //   ['--key1', '--key2', '--key3=null', '--key4=false', '__key4=[1, 2, 3]', 'somekey=Hello World!'],
-    //   {
-    //     prefix: ''
-    //   },
-    //   {
-    //     key1: {
-    //       defaultValue: 10,
-    //       prefix: '-'
-    //     }
-    //   }
-    // )).toEqual({
-    //   key1: 10,
-    //   '--key2': true,
-    //   '--key3': null,
-    //   '--key4': false,
-    //   '__key4': [1, 2, 3],
-    //   somekey: 'Hello World!',
-    // });
+    const keysWithAlias = {
+      foo: {
+        aliases: ['f', 'fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], {}, keysWithAlias )).toEqual({ foo: 5 });
+    expect(argsParser( ['-f'], {}, keysWithAlias )).toEqual({ foo: 5 });
+    expect(argsParser( ['-fo'], {}, keysWithAlias )).toEqual({ foo: 5 });
+
+    const keysWithAlias2 = {
+      foo: {
+        aliases: ['f', 'fo'],
+        defaultValue: 5,
+        prefix: '-'
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+
+    const keysWithAlias3 = {
+      '--foo': {
+        aliases: ['-f', '-fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+
+    const keysWithAlias4 = {
+      '--foo': {
+        aliases: ['+f', '+fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['+f'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['+fo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
   });
 });
