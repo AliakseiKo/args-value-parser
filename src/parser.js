@@ -109,7 +109,7 @@ function parseArgs(
  * @returns {Object.<string, *>} result object that contains parsed arguments { keys: values }.
  */
 function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
-  const defaultOptions = { defaultValue: true, valueToJS: true, prefix: '-' };
+  const defaultOptions = { defaultValue: true, parseValue: true, prefix: '-' };
   const _options = Object.create(defaultOptions, Object.getOwnPropertyDescriptors(options));
   const _keys = {};
   const prefixSet = new Set();
@@ -153,7 +153,7 @@ function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
 
     value = (value === undefined)
       ? (known ? _keys[key].defaultValue : _options.defaultValue)
-      : (known ? _keys[key].valueToJS : _options.valueToJS)
+      : (known ? _keys[key].parseValue : _options.parseValue)
         ? parseValue(value)
         : value;
 
