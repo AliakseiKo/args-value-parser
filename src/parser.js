@@ -2,9 +2,14 @@ const JSON5 = require('json5');
 const { escape } = require('./utils');
 
 /**
- * Parses input value to JS data type or structure, if it is possible
- * @param {*} value
- * @returns {*} - return a JS data type or structure if the parsing was successful, otherwise the input value.
+ * Parses input value to JS data type or structure, if it is possible.
+ * @param {*} value - it's a string usually
+ * @returns {*} - a JS data type or structure if the parsing was successful,
+ * otherwise the input value.
+ * @example
+ * parseValue('[0.5, -Infinity, null, { name: "alex", age: 22 }]');
+ *
+ * returns [0.5, -Infinity, null, { name: 'alex', age: 22 }];
  */
 function parseValue(value) {
   try {
@@ -18,17 +23,22 @@ function parseValue(value) {
 /**
  * The object which parseArg function returns
  * @typedef {Object} parseResult
- * @property {string} key - key that was parsed from '--key=value' = 'key'
- * @property {(string|undefined)} value - value that was parsed from '--key=value' 'value'
- * @property {string} prefix - prefix that was parsed from '--key=value' = '--'
- * @property {string} arg - source argument '--key=value'
+ * @property {string} key - key that was parsed. For example: '--foo=25' = 'foo'
+ * @property {(string|undefined)} value - value that was parsed. For example: '--foo=25' = '25'
+ * @property {string} prefix - prefix that was parsed. For example: '--foo=25' = '--'
+ * @property {string} arg - source argument. For example: '--foo=25'
  */
 
 /**
- * Parse argument like --key=value and returns object { key, value, prefix, arg }
- * @param {string} arg - examples: '--key=value', 'key=value', 'key', 'abc', '123', etc
- * @param {string[]} [prefix=['-']] - prefixes of argument
- * @returns {parseResult} - object constists key, value, prefix, arg.
+ * Parses a string into a prefix, key, value
+ * @param {string} arg - an input string;
+ * @param {Array.<string>} [prefixes=['-']] - array of strings which can be prefixes.
+ * @returns {parseResult} - the object that contains the following
+ * properties: { key, value, prefix, arg }.
+ * @example
+ * parseArg('--foo=25', ['-']); // prefixes = ['-'] by default.
+ *
+ * returns { key: 'foo', value: '25', prefix: '--', arg: '--foo=25' };
  */
 function parseArg(arg, prefixes = ['-']) {
   const _prefixes = escape(prefixes.join(''), escape.regExp, false);
@@ -41,30 +51,39 @@ function parseArg(arg, prefixes = ['-']) {
 }
 
 /**
- * The result object which parseCallback function may return
+ * The result object which parseCallback function may return.
  * @typedef {Object} parseCallbackResult
- * @property {string} key - key that was parsed from --key=value
- * @property {*} value - value that was parsed from --key=value
+ * @property {string} key - key that was parsed. For example: '--foo=25' = 'foo'.
+ * @property {*} value - value that was parsed. For example: '--foo=25' = '25'.
  */
 
 /**
  * This callback will be called on each of arguments. Works like Array.prototype.map callback
  * @callback parseCallback
- * @param {string} key
- * @param {(string|undefined)} value
- * @param {string} prefix
- * @param {string} arg
- * @returns {(parseCallbackResult|undefined)}
+ * @param {string} key - key that was parsed. For example: '--foo=25' = 'foo'.
+ * @param {(string|undefined)} value - value that was parsed. For example: '--foo=25' = '25'.
+ * @param {string} prefix - prefix that was parsed. For example: '--foo=25' = '--'.
+ * @param {string} arg - source argument. For example: '--foo=25'.
+ * @returns {(parseCallbackResult|*)}
  */
 
 /**
- * Creates an object from the results of a callback call. Directly like Array.prototype.map.
- * @param {string[]} [args=process.argv] - array of arguments
- * @param {parseCallback} [callback=(key, value, prefix, arg) => ({ key, value })] -
- * will be called for each of arguments array with the following arguments: (key, value, prefix,
- * arg), and writes the result of its call to a new object that will be returned by this function
- * @param {string} [options.prefix="-"] - prefix of argument --key=value [--] - prefix
- * @returns {Object.<string, *>} result object that contains parsed arguments { keys: values }
+ * Creates an object from the results of the callback call. Works like Array.prototype.map.
+ * @param {Array.<string>} [args=process.argv] - array of arguments.
+ * @param {parseCallback} [callback=(key, value) => ({ key, value })] - a function that
+ * will be called for each of the array arguments with the following arguments:
+ * (key, value, prefix, arg), and the results of its calls will be written to the resulting object.
+ * If function returns object which contains key and value properties then result of its call
+ * will be written to the resulting object else result will not be written.
+ * @param {Array.<string>} [prefixes=['-']] - array of strings which can be prefixes.
+ * @returns {Object.<string, *>} result object with the following structure: { <key>: <value> }.
+ * @example
+ * parseArgs(['--foo=25', '-bar', '_qux='], (key, value) => {
+ *   if (key === 'foo') return { key: 'f', value: value + 5 };
+ *   return { key, value };
+ * }); // callback and prefixes set default.
+ *
+ * returns { f: 30, bar: undefined, '_qux': '' };
  */
 function parseArgs(
   args = process.argv.slice(2),
@@ -87,26 +106,44 @@ function parseArgs(
 /**
  * The option object of argsParser function
  * @typedef {Object} Options
- * @property {*} [defaultValue=true] - default value. use if argument value will not passed.
- * @property {boolean} [valueToJS=true] - parse string value to JS data type or structure.
- * @property {string} [prefix=''] - prefix of argument '--key=value' [--] - prefix
+ * @property {*} [defaultValue=true] - a default value. used if argument value will not passed.
+ * For example if we passed '--foo' without any value then value of foo would be equal defaultValue.
+ * @property {boolean} [parseValue=true] - parse string value to JS data type or structure.
+ * For example if we set this property to false then value of passed argument, for example like
+ * this '--foo=true' will not be boolean, it will be string 'true'.
+ * @property {string} [prefix='-'] - prefix of argument. For example,
+ * in the following string '--foo=25' prefix would be '-'.
  */
 
 /**
- * The object describing key's own optins. Overrides global options for only this key
+ * The object describing key's own options. Overrides global options for only specified key
  * @typedef {Object} KeyDescription
- * @property {string[]} [aliases] - an array that contains aliases.
- * @property {*} [defaultValue] - default value. Overrides option.defaultValue
- * @property {boolean} [valueToJS] - parse string value to JS data type or structure. Overrides option.valueToJS
- * @property {string} [prefix] - prefix of argument '--key=value' [--] - prefix. Overrides option.valueToJS
+ * @property {Array.<string>} [aliases] - an array that contains aliases.
+ * @property {*} [defaultValue] - a default value. Overrides options.defaultValue.
+ * @property {boolean} [parseValue] - parse string value to JS data type or structure.
+ * Overrides options.parseValue.
+ * @property {string} [prefix] - prefix of argument. For example, in the following
+ * string '--foo=25' prefix would be '-'. Overrides options.parseValue.
  */
 
 /**
- * This function parses each argument from array of arguments and return object that consist { key: value }.
- * @param {string[]} [args=process.argv] - array of arguments.
- * @param {Options} [options] - option object.
- * @param {Object.<string, KeyDescription>} [keys] - object must contain { keys: keyDescriptors }.
- * @returns {Object.<string, *>} result object that contains parsed arguments { keys: values }.
+ * Parses each argument from array of arguments.
+ * @param {Array.<string>} [args=process.argv] - array of arguments.
+ * @param {Options} [options=Options] - the options object, sets global options
+ * for all arguments (keys).
+ * @param {Object.<string, KeyDescription>} [keys={}] - the dictionary object with the following
+ * structure: { <key>: <keyDescriptor> }.
+ * @returns {Object.<string, *>} - result object with the following structure: { <key>: <value> }.
+ * @example
+ * const args = ['--foo=25', '__bar', '-Q'];
+ * const options = { defaultValue: 500, prefix: '_' };
+ * const keys = {
+ *   qux: { aliases: ['Q'], defaultValue: true, prefix: '-' }
+ * };
+ *
+ * argsParser(args, options, keys);
+ *
+ * returns { bar: 500, qux: true };
  */
 function argsParser(args = process.argv.slice(2), options = {}, keys = {}) {
   const defaultOptions = { defaultValue: true, parseValue: true, prefix: '-' };
