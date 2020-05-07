@@ -2,12 +2,19 @@
   "name": "args-parser",
   "version": "1.0.0",
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
-  "keywords": ["args", "argv", "flags", "key=value", "parser"],
+  "keywords": [
+    "args",
+    "argv",
+    "flags",
+    "key=value",
+    "parser"
+  ],
   "main": "src/parser.js",
   "private": true,
   "scripts": {
     "lint": "eslint ./src/",
-    "test": "jest"
+    "test": "jest ./test/",
+    "doc": "jsdoc ./src/parser.js -d ./doc/"
   },
   "repository": {
     "type": "git",
@@ -25,7 +32,8 @@
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "eslint": "^6.8.0",
-    "jest": "^26.0.1"
+    "jest": "^26.0.1",
+    "jsdoc": "^3.6.4"
   },
   "dependencies": {
     "json5": "^2.1.3"
