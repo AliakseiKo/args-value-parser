@@ -7,6 +7,7 @@
     "argv",
     "flags",
     "key=value",
+    "--key=value",
     "parser"
   ],
   "main": "src/parser.js",
@@ -14,7 +15,7 @@
   "scripts": {
     "lint": "eslint ./src/",
     "test": "jest ./test/",
-    "doc": "jsdoc ./src/parser.js -d ./doc/"
+    "doc": "jsdoc ./src/parser.js -c ./jsDoc.config.json -d ./doc/"
   },
   "repository": {
     "type": "git",
