@@ -1,4 +1,4 @@
-const JSON5 = require('json5');
+const JSON5 = require('./JSON5_md_by_AliakseiKo.min.js');
 const { escape } = require('./utils');
 
 /**
