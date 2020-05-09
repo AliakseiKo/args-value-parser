@@ -170,6 +170,219 @@ describe(parseArgs, () => {
 });
 
 describe(argsParser, () => {
+  it('must correctly work with default options', () => {
+    expect(argsParser([
+      '--foo',
+      '--bar=',
+      '--qux=25'
+    ])).toEqual({
+      foo: true,
+      bar: '',
+      qux: 25
+    });
+  });
+
+  it('must correctly work with the options.defaultValue', () => {
+    expect(argsParser(
+      [
+        '--foo',
+        '--bar=',
+        '--qux=25'
+      ],
+      {
+        defaultValue: [1, NaN, 3]
+      }
+    )).toEqual({
+      foo: [1, NaN, 3],
+      bar: '',
+      qux: 25
+    });
+  });
+
+  it('must correctly work with the options.parseValue', () => {
+    expect(argsParser(
+      [
+        '--foo',
+        '--bar=',
+        '--qux=25'
+      ],
+      {
+        parseValue: false
+      }
+    )).toEqual({
+      foo: true,
+      bar: '',
+      qux: '25'
+    });
+  });
+
+  it('must correctly work with the options.prefix', () => {
+    expect(argsParser(
+      [
+        'foo=5',
+        '-bar=10',
+        '--baz=15',
+        '---qux=20',
+        '_osе=25',
+        '__rol=30',
+        '___zed=35'
+      ],
+      {
+        prefix: '_'
+      }
+    )).toEqual({
+      rol: 30
+    });
+  });
+
+  it('must correctly work with the options.prefix = ""', () => {
+    expect(argsParser(
+      [
+        'foo=5',
+        '-bar=10',
+        '--baz=15',
+        '---qux=20',
+        '_osе=25',
+        '__rol=30',
+        '___zed=35'
+      ],
+      {
+        prefix: ''
+      }
+    )).toEqual({
+      foo: 5,
+      '-bar': 10,
+      '--baz': 15,
+      '---qux': 20,
+      _osе: 25,
+      __rol: 30,
+      ___zed: 35
+    });
+  });
+
+  it('must correctly work with default options and keyDescriptor.aliases', () => {
+    expect(argsParser(
+      [
+        '-fo',
+        '-B=25',
+        '-Bz=null',
+        '--q=NaN',
+        '--ose=false'
+      ],
+      undefined,
+      {
+        foo: { aliases: ['f', 'fo'] },
+        bar: { aliases: ['B'] },
+        baz: { aliases: ['Bz'] },
+        qux: { aliases: ['q', 'qx'] },
+        ose: { aliases: ['o'] }
+      }
+    )).toEqual({
+      foo: true,
+      bar: 25,
+      baz: null,
+      q: NaN,
+      ose: false
+    });
+  });
+
+  it('must correctly work with options.defaultValue and keyDescriptor.defaultValue', () => {
+    expect(argsParser(
+      [
+        '--foo',
+        '--bar',
+        '--qux=25'
+      ],
+      {
+        defaultValue: false
+      },
+      {
+        bar: { defaultValue: [1, NaN, 3] },
+        qux: { defaultValue: null }
+      }
+    )).toEqual({
+      foo: false,
+      bar: [1, NaN, 3],
+      qux: 25
+    });
+  });
+
+  it('must correctly work with options.parseValue and keyDescriptor.parseValue', () => {
+    expect(argsParser(
+      [
+        '--foo=null',
+        '--bar=false',
+        '--qux=25'
+      ],
+      {
+        parseValue: false
+      },
+      {
+        bar: { parseValue: true },
+        qux: { parseValue: true }
+      }
+    )).toEqual({
+      foo: 'null',
+      bar: false,
+      qux: 25
+    });
+  });
+
+  it('must correctly work with options.prefix and keyDescriptor.prefix', () => {
+    expect(argsParser(
+      [
+        '--foo=null',
+        '--bar=false',
+        '++baz=-Infinity',
+        '__qux=25',
+        '++++osе',
+        'rol=0.25'
+      ],
+      {
+        prefix: '_'
+      },
+      {
+        bar: { prefix: '-' },
+        baz: { prefix: '+' },
+        '++++osе': { prefix: '' },
+        rol: { prefix: '' }
+      }
+    )).toEqual({
+      bar: false,
+      baz: -Infinity,
+      qux: 25,
+      '++++osе': true,
+      rol: 0.25
+    });
+  });
+
+  it('must correctly work with options.prefix = "" and keyDescriptor.prefix', () => {
+    expect(argsParser(
+      [
+        '--foo=null',
+        '--bar=false',
+        '++baz=-Infinity',
+        '__qux',
+        '++++osе=25',
+        'rol=0.25'
+      ],
+      {
+        prefix: ''
+      },
+      {
+        bar: { prefix: '-' },
+        '++++osе': { prefix: '+' }
+      }
+    )).toEqual({
+      '--foo': null,
+      bar: false,
+      '++baz': -Infinity,
+      __qux: true,
+      '++++osе': 25,
+      rol: 0.25
+    });
+  });
+
   it('must overwrite the identical keys to the value of last argument with the same key', () => {
     expect(argsParser([
       '--foo=5',
@@ -194,20 +407,6 @@ describe(argsParser, () => {
       [
         '__foo=5',
         '--foo=10'
-      ],
-      undefined,
-      {
-        foo: { prefix: '_' }
-      }
-    )).toEqual({
-      foo: 5,
-      '--foo': 10
-    });
-
-    expect(argsParser(
-      [
-        '--foo=10',
-        '__foo=5'
       ],
       undefined,
       {
@@ -249,30 +448,6 @@ describe(argsParser, () => {
       key3: 'null',
       key4: [1, 2, 3]
     });
-  });
-
-  it('must parse arguments correctly with default parameters', () => {
-    expect(argsParser([
-      '--key1',
-      '--key2=',
-      '--key3="null"',
-      '--key4=[undefined, 0.5, +Infinity, false, [1, NaN, 3], { name: "alex", \'age\': 22, "married": false }, null]',
-    ])).toEqual({
-      key1: true,
-      key2: '',
-      key3: 'null',
-      key4: [undefined, 0.5, +Infinity, false, [1, NaN, 3], { name: 'alex', age: 22, married: false }, null]
-    });
-
-    expect(argsParser([
-      'key1=5',
-      '-key2=10',
-      '--key3=15',
-      '---key4=20',
-      '_key5=25',
-      '__key6=30',
-      '___key7=35'
-    ])).toEqual({ key3: 15 });
   });
 
   it.each([
@@ -350,98 +525,6 @@ describe(argsParser, () => {
     expect(argsParser(args, options)).toEqual(expected);
   });
 
-  it('must parse arguments correctly with given global parseValue', () => {
-    expect(argsParser(
-      [
-        '--key1=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-        '--key2="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
-      ],
-      { parseValue: true }
-    )).toEqual({
-      key1: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
-      key2: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'
-    });
-
-    expect(argsParser(
-      [
-        '--key1=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-        '--key2="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
-      ],
-      {
-        parseValue: false
-      }
-    )).toEqual({
-      key1: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-      key2: '"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
-    });
-  });
-
-  it('must parse arguments correctly with given global prefix', () => {
-    expect(argsParser(
-      [
-        'key1=5',
-        '+key2=10',
-        '++key3=15',
-        '+++key4=20',
-        '-key5=25',
-        '--key6=30',
-        '---key7=35'
-      ],
-      {
-        prefix: '+'
-      }
-    )).toEqual({ key3: 15 });
-
-    expect(argsParser(
-      [
-        'key1=5',
-        '-key2=10',
-        '--key3=15',
-        '---key4=20',
-        '_key5=25',
-        '__key6=30',
-        '___key7=35'
-      ],
-      {
-        prefix: ''
-      }
-    )).toEqual({
-      key1: 5,
-      '-key2': 10,
-      '--key3': 15,
-      '---key4': 20,
-      _key5: 25,
-      __key6: 30,
-      ___key7: 35
-    });
-  });
-
-  it('must parse arguments correctly with aliases', () => {
-    expect(argsParser(
-      [
-        '-fo',
-        '-B=25',
-        '-Bz=null',
-        '--q=NaN',
-        '--ose=false'
-      ],
-      undefined,
-      {
-        foo: { aliases: ['f', 'fo'] },
-        bar: { aliases: ['B'] },
-        baz: { aliases: ['Bz'] },
-        qux: { aliases: ['q', 'qx'] },
-        ose: { aliases: ['o'] }
-      }
-    )).toEqual({
-      foo: true,
-      bar: 25,
-      baz: null,
-      q: NaN,
-      ose: false
-    });
-  });
-
   {
     const keysWithAlias1 = {
       foo: {
@@ -489,64 +572,4 @@ describe(argsParser, () => {
       expect(argsParser(args, options, keys)).toEqual(expected);
     });
   }
-
-  it('must parse arguments correctly with keys', () => {
-    // with global prefix
-    expect(argsParser(
-      [
-        '--key1',
-        '__key2=[1, 2, 3]',
-        '__key3=0.5',
-        '__key4=null',
-        'somekey=Hello World!'
-      ],
-      {
-        prefix: '-'
-      },
-      {
-        key2: {
-          prefix: '_'
-        },
-        '__key3': {
-          prefix: ''
-        },
-        somekey: {
-          prefix: ''
-        }
-      }
-    )).toEqual({
-      key1: true,
-      key2: [1, 2, 3],
-      '__key3': 0.5,
-      somekey: 'Hello World!'
-    });
-
-    // without global prefix
-    expect(argsParser(
-      [
-        '--key1',
-        '__key2=[1, 2, 3]',
-        '__key3=0.5',
-        '__key4=null',
-        'somekey=Hello World!'
-      ],
-      {
-        prefix: ''
-      },
-      {
-        key1: {
-          prefix: '-'
-        },
-        key2: {
-          prefix: '_'
-        }
-      }
-    )).toEqual({
-      key1: true,
-      key2: [1, 2, 3],
-      '__key3': 0.5,
-      '__key4': null,
-      somekey: 'Hello World!'
-    });
-  });
 });
