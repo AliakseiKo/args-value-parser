@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "eslint ./src/",
     "test": "jest ./test/",
-    "doc": "jsdoc ./src/parser.js -c ./jsDoc.config.json -d ./doc/"
+    "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json -d ./doc/"
   },
   "repository": {
     "type": "git",
