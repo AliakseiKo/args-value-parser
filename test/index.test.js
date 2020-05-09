@@ -1,241 +1,176 @@
 /* eslint-env jest */
-const { argsParser, parseArgs, parseArg, parseValue } = require('../src/index');
+const { argsParser, parseArgs, parseArg, parseValue } = require('../lib/index');
 
-describe('parseValue function', () => {
-  test('must parse undefined', () => {
+describe(parseValue, () => {
+  it('must parse undefined', () => {
     expect(parseValue('undefined')).toEqual(undefined);
   });
 
-  test('must parse null', () => {
+  it('must parse null', () => {
     expect(parseValue('null')).toEqual(null);
   });
 
-  test('must parse boolean', () => {
+  it('must parse boolean', () => {
     expect(parseValue('true')).toEqual(true);
     expect(parseValue('false')).toEqual(false);
   });
 
-  test('must parse number', () => {
-    expect(parseValue('0')).toEqual(0);
-    expect(parseValue('+0')).toEqual(0);
-    expect(parseValue('-0')).toEqual(0);
-    expect(parseValue('0.5')).toEqual(0.5);
-    expect(parseValue('+0.5')).toEqual(0.5);
-    expect(parseValue('-0.5')).toEqual(-0.5);
-    expect(parseValue('123e-2')).toEqual(1.23);
-    expect(parseValue('+123e-2')).toEqual(1.23);
-    expect(parseValue('-123e-2')).toEqual(-1.23);
-    expect(parseValue('0x2f0D')).toEqual(12045);
-    expect(parseValue('+0x2f0D')).toEqual(12045);
-    expect(parseValue('-0x2f0D')).toEqual(-12045);
-    expect(parseValue('0b1111111')).toEqual(127);
-    expect(parseValue('+0b1111111')).toEqual(127);
-    expect(parseValue('-0b1111111')).toEqual(-127);
-    expect(parseValue('0o347')).toEqual(231);
-    expect(parseValue('+0o347')).toEqual(231);
-    expect(parseValue('-0o347')).toEqual(-231);
-    expect(parseValue('Infinity')).toEqual(Infinity);
-    expect(parseValue('+Infinity')).toEqual(+Infinity);
-    expect(parseValue('-Infinity')).toEqual(-Infinity);
-    expect(parseValue('NaN')).toEqual(NaN);
+  it.each([
+    ['0', 0],
+    ['+0', 0],
+    ['-0', -0],
+    ['0.5', 0.5],
+    ['+0.5', 0.5],
+    ['-0.5', -0.5],
+    ['123e-2', 1.23],
+    ['+123e-2', 1.23],
+    ['-123e-2', -1.23],
+    ['0x2f0D', 12045],
+    ['+0x2f0D', 12045],
+    ['-0x2f0D', -12045],
+    ['0b1111111', 127],
+    ['+0b1111111', 127],
+    ['-0b1111111', -127],
+    ['0o347', 231],
+    ['+0o347', 231],
+    ['-0o347', -231],
+    ['Infinity', Infinity],
+    ['+Infinity', +Infinity],
+    ['-Infinity', -Infinity],
+    ['NaN', NaN]
+  ])('must parse string(%s) to number(%i)', (value, expected) => {
+    expect(parseValue(value)).toEqual(expected);
   });
 
-  test('must parse string', () => {
+  it('must parse string', () => {
     expect(parseValue('"250"')).toEqual('250');
-
     expect(parseValue('Hello World!')).toEqual('Hello World!');
-    expect(parseValue('"Hello World!"')).toEqual('Hello World!');
-    expect(parseValue('\'Hello World!\'')).toEqual('Hello World!');
   });
 
-  test('must parse array', () => {
+  it('must parse array', () => {
     expect(parseValue('[undefined, null, true, false, 250, -Infinity, "Hello World!"]'))
       .toEqual([undefined, null, true, false, 250, -Infinity, "Hello World!"]);
   });
 
-  test('must parse object', () => {
+  it('must parse object', () => {
     expect(parseValue('{ name: "alex", \'age\': 22, "married": false }'))
       .toEqual({ name: 'alex', age: 22, married: false });
   });
 });
 
-describe('parseArg function', () => {
-  test('must parse argument with default prefix (-) correctly', () => {
-    expect(parseArg('--key=value'))
-      .toEqual({ key: 'key', value: 'value', prefix: '--', arg: '--key=value' });
-    expect(parseArg('--key'))
-      .toEqual({ key: 'key', value: undefined, prefix: '--', arg: '--key' });
-    expect(parseArg('key'))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('--key='))
-      .toEqual({ key: 'key', value: '', prefix: '--', arg: '--key=' });
-    expect(parseArg('--'))
-      .toEqual({ key: '', value: undefined, prefix: '--', arg: '--' });
-    expect(parseArg('=value'))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('--=value'))
-      .toEqual({ key: '', value: 'value', prefix: '--', arg: '--=value' });
-    expect(parseArg('='))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+describe(parseArg, () => {
+  it.each([
+    ['--key=value', { prefix: '--', key: 'key', value: 'value',   arg: '--key=value' }],
+    ['--key',       { prefix: '--', key: 'key', value: undefined, arg: '--key' }],
+    ['key',         { prefix: '',   key: 'key', value: undefined, arg: 'key' }],
+    ['--key=',      { prefix: '--', key: 'key', value: '',        arg: '--key=' }],
+    ['--',          { prefix: '--', key: '',    value: undefined, arg: '--' }],
+    ['=value',      { prefix: '',   key: '',    value: 'value',   arg: '=value' }],
+    ['--=value',    { prefix: '--', key: '',    value: 'value',   arg: '--=value' }],
+    ['=',           { prefix: '',   key: '',    value: '',        arg: '=' }]
+  ])('must parse argument(%s) with default prefix (-) correctly', (arg, expected) => {
+    expect(parseArg(arg)).toEqual(expected);
   });
 
-  test('must parse argument without prefix correctly', () => {
-    expect(parseArg('--key=value', ['']))
-      .toEqual({ key: '--key', value: 'value', prefix: '', arg: '--key=value' });
-    expect(parseArg('--key', ['']))
-      .toEqual({ key: '--key', value: undefined, prefix: '', arg: '--key' });
-    expect(parseArg('key', ['']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('--key=', ['']))
-      .toEqual({ key: '--key', value: '', prefix: '', arg: '--key=' });
-    expect(parseArg('--', ['']))
-      .toEqual({ key: '--', value: undefined, prefix: '', arg: '--' });
-    expect(parseArg('=value', ['']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('--=value', ['']))
-      .toEqual({ key: '--', value: 'value', prefix: '', arg: '--=value' });
-    expect(parseArg('=', ['']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+  it.each([
+    ['--key=value', [''], { prefix: '', key: '--key', value: 'value',   arg: '--key=value' }],
+    ['--key',       [''], { prefix: '', key: '--key', value: undefined, arg: '--key' }],
+    ['key',         [''], { prefix: '', key: 'key',   value: undefined, arg: 'key' }],
+    ['--key=',      [''], { prefix: '', key: '--key', value: '',        arg: '--key=' }],
+    ['--',          [''], { prefix: '', key: '--',    value: undefined, arg: '--' }],
+    ['=value',      [''], { prefix: '', key: '',      value: 'value',   arg: '=value' }],
+    ['--=value',    [''], { prefix: '', key: '--',    value: 'value',   arg: '--=value' }],
+    ['=',           [''], { prefix: '', key: '',      value: '',        arg: '=' }]
+  ])('must parse argument(%s) without prefix correctly', (arg, prefixes, expected) => {
+    expect(parseArg(arg, prefixes)).toEqual(expected);
   });
 
-  test('must parse argument with other prefix (_) correctly', () => {
-    expect(parseArg('--key=value', ['_']))
-      .toEqual({ key: '--key', value: 'value', prefix: '', arg: '--key=value' });
-    expect(parseArg('--key', ['_']))
-      .toEqual({ key: '--key', value: undefined, prefix: '', arg: '--key' });
-    expect(parseArg('key', ['_']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('--key=', ['_']))
-      .toEqual({ key: '--key', value: '', prefix: '', arg: '--key=' });
-    expect(parseArg('--', ['_']))
-      .toEqual({ key: '--', value: undefined, prefix: '', arg: '--' });
-    expect(parseArg('=value', ['_']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('--=value', ['_']))
-      .toEqual({ key: '--', value: 'value', prefix: '', arg: '--=value' });
-    expect(parseArg('=', ['_']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+  it.each([
+    ['--key=value', ['_'],  { prefix: '', key: '--key', value: 'value',   arg: '--key=value' }],
+    ['--key',       ['_'],  { prefix: '', key: '--key', value: undefined, arg: '--key' }],
+    ['key',         ['_'],  { prefix: '', key: 'key',   value: undefined, arg: 'key' }],
+    ['--key=',      ['_'],  { prefix: '', key: '--key', value: '',        arg: '--key=' }],
+    ['--',          ['_'],  { prefix: '', key: '--',    value: undefined, arg: '--' }],
+    ['=value',      ['_'],  { prefix: '', key: '',      value: 'value',   arg: '=value' }],
+    ['--=value',    ['_'],  { prefix: '', key: '--',    value: 'value',   arg: '--=value' }],
+    ['=',           ['_'],  { prefix: '', key: '',      value: '',        arg: '=' }],
 
-    expect(parseArg('__key=value', ['_']))
-      .toEqual({ key: 'key', value: 'value', prefix: '__', arg: '__key=value' });
-    expect(parseArg('__key', ['_']))
-      .toEqual({ key: 'key', value: undefined, prefix: '__', arg: '__key' });
-    expect(parseArg('key', ['_']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('__key=', ['_']))
-      .toEqual({ key: 'key', value: '', prefix: '__', arg: '__key=' });
-    expect(parseArg('__', ['_']))
-      .toEqual({ key: '', value: undefined, prefix: '__', arg: '__' });
-    expect(parseArg('=value', ['_']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('__=value', ['_']))
-      .toEqual({ key: '', value: 'value', prefix: '__', arg: '__=value' });
-    expect(parseArg('=', ['_']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+    ['__key=value', ['_'], { prefix: '__', key: 'key',  value: 'value',   arg: '__key=value' }],
+    ['__key',       ['_'], { prefix: '__', key: 'key',  value: undefined, arg: '__key' }],
+    ['key',         ['_'], { prefix: '',   key: 'key',  value: undefined, arg: 'key' }],
+    ['__key=',      ['_'], { prefix: '__', key: 'key',  value: '',        arg: '__key=' }],
+    ['__',          ['_'], { prefix: '__', key: '',     value: undefined, arg: '__' }],
+    ['=value',      ['_'], { prefix: '',   key: '',     value: 'value',   arg: '=value' }],
+    ['__=value',    ['_'], { prefix: '__', key: '',     value: 'value',   arg: '__=value' }],
+    ['=',           ['_'], { prefix: '',   key: '',     value: '',        arg: '=' }]
+  ])('must parse argument(%s) with other prefix (_) correctly', (arg, prefixes, expected) => {
+    expect(parseArg(arg, prefixes)).toEqual(expected);
   });
 
-  test('must parse argument with several prefixes (\\$) correctly', () => {
-    expect(parseArg('--key=value', ['\\', '$']))
-      .toEqual({ key: '--key', value: 'value', prefix: '', arg: '--key=value' });
-    expect(parseArg('--key', ['\\', '$']))
-      .toEqual({ key: '--key', value: undefined, prefix: '', arg: '--key' });
-    expect(parseArg('key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('--key=', ['\\', '$']))
-      .toEqual({ key: '--key', value: '', prefix: '', arg: '--key=' });
-    expect(parseArg('--', ['\\', '$']))
-      .toEqual({ key: '--', value: undefined, prefix: '', arg: '--' });
-    expect(parseArg('=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('--=value', ['\\', '$']))
-      .toEqual({ key: '--', value: 'value', prefix: '', arg: '--=value' });
-    expect(parseArg('=', ['\\', '$']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+  it.each([
+    ['--key=value', ['\\', '$'], { prefix: '', key: '--key',  value: 'value',   arg: '--key=value' }],
+    ['--key',       ['\\', '$'], { prefix: '', key: '--key',  value: undefined, arg: '--key' }],
+    ['key',         ['\\', '$'], { prefix: '', key: 'key',    value: undefined, arg: 'key' }],
+    ['--key=',      ['\\', '$'], { prefix: '', key: '--key',  value: '',        arg: '--key=' }],
+    ['--',          ['\\', '$'], { prefix: '', key: '--',     value: undefined, arg: '--' }],
+    ['=value',      ['\\', '$'], { prefix: '', key: '',       value: 'value',   arg: '=value' }],
+    ['--=value',    ['\\', '$'], { prefix: '', key: '--',     value: 'value',   arg: '--=value' }],
+    ['=',           ['\\', '$'], { prefix: '', key: '',       value: '',        arg: '=' }],
 
-    expect(parseArg('\\\\key=value', ['\\', '$']))
-      .toEqual({ key: 'key', value: 'value', prefix: '\\\\', arg: '\\\\key=value' });
-    expect(parseArg('\\\\key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '\\\\', arg: '\\\\key' });
-    expect(parseArg('key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('\\\\key=', ['\\', '$']))
-      .toEqual({ key: 'key', value: '', prefix: '\\\\', arg: '\\\\key=' });
-    expect(parseArg('\\\\', ['\\', '$']))
-      .toEqual({ key: '', value: undefined, prefix: '\\\\', arg: '\\\\' });
-    expect(parseArg('=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('\\\\=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '\\\\', arg: '\\\\=value' });
-    expect(parseArg('=', ['\\', '$']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+    ['\\\\key=value', ['\\', '$'], { prefix: '\\\\', key: 'key',  value: 'value',   arg: '\\\\key=value' }],
+    ['\\\\key',       ['\\', '$'], { prefix: '\\\\', key: 'key',  value: undefined, arg: '\\\\key' }],
+    ['key',           ['\\', '$'], { prefix: '',     key: 'key',  value: undefined, arg: 'key' }],
+    ['\\\\key=',      ['\\', '$'], { prefix: '\\\\', key: 'key',  value: '',        arg: '\\\\key=' }],
+    ['\\\\',          ['\\', '$'], { prefix: '\\\\', key: '',     value: undefined, arg: '\\\\' }],
+    ['=value',        ['\\', '$'], { prefix: '',     key: '',     value: 'value',   arg: '=value' }],
+    ['\\\\=value',    ['\\', '$'], { prefix: '\\\\', key: '',     value: 'value',   arg: '\\\\=value' }],
+    ['=',             ['\\', '$'], { prefix: '',     key: '',     value: '',        arg: '=' }],
 
-    expect(parseArg('$$key=value', ['\\', '$']))
-      .toEqual({ key: 'key', value: 'value', prefix: '$$', arg: '$$key=value' });
-    expect(parseArg('$$key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '$$', arg: '$$key' });
-    expect(parseArg('key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('$$key=', ['\\', '$']))
-      .toEqual({ key: 'key', value: '', prefix: '$$', arg: '$$key=' });
-    expect(parseArg('$$', ['\\', '$']))
-      .toEqual({ key: '', value: undefined, prefix: '$$', arg: '$$' });
-    expect(parseArg('=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('$$=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '$$', arg: '$$=value' });
-    expect(parseArg('=', ['\\', '$']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+    ['$$key=value', ['\\', '$'], { prefix: '$$', key: 'key',  value: 'value',   arg: '$$key=value' }],
+    ['$$key',       ['\\', '$'], { prefix: '$$', key: 'key',  value: undefined, arg: '$$key' }],
+    ['key',         ['\\', '$'], { prefix: '',   key: 'key',  value: undefined, arg: 'key' }],
+    ['$$key=',      ['\\', '$'], { prefix: '$$', key: 'key',  value: '',        arg: '$$key=' }],
+    ['$$',          ['\\', '$'], { prefix: '$$', key: '',     value: undefined, arg: '$$' }],
+    ['=value',      ['\\', '$'], { prefix: '',   key: '',     value: 'value',   arg: '=value' }],
+    ['$$=value',    ['\\', '$'], { prefix: '$$', key: '',     value: 'value',   arg: '$$=value' }],
+    ['=',           ['\\', '$'], { prefix: '',   key: '',     value: '',        arg: '=' }],
 
-    expect(parseArg('\\$key=value', ['\\', '$']))
-      .toEqual({ key: '$key', value: 'value', prefix: '\\', arg: '\\$key=value' });
-    expect(parseArg('\\$key', ['\\', '$']))
-      .toEqual({ key: '$key', value: undefined, prefix: '\\', arg: '\\$key' });
-    expect(parseArg('key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('\\$key=', ['\\', '$']))
-      .toEqual({ key: '$key', value: '', prefix: '\\', arg: '\\$key=' });
-    expect(parseArg('\\$', ['\\', '$']))
-      .toEqual({ key: '$', value: undefined, prefix: '\\', arg: '\\$' });
-    expect(parseArg('=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('\\$=value', ['\\', '$']))
-      .toEqual({ key: '$', value: 'value', prefix: '\\', arg: '\\$=value' });
-    expect(parseArg('=', ['\\', '$']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+    ['\\$key=value',  ['\\', '$'], { prefix: '\\', key: '$key', value: 'value',   arg: '\\$key=value' }],
+    ['\\$key',        ['\\', '$'], { prefix: '\\', key: '$key', value: undefined, arg: '\\$key' }],
+    ['key',           ['\\', '$'], { prefix: '',   key: 'key',  value: undefined, arg: 'key' }],
+    ['\\$key=',       ['\\', '$'], { prefix: '\\', key: '$key', value: '',        arg: '\\$key=' }],
+    ['\\$',           ['\\', '$'], { prefix: '\\', key: '$',    value: undefined, arg: '\\$' }],
+    ['=value',        ['\\', '$'], { prefix: '',   key: '',     value: 'value',   arg: '=value' }],
+    ['\\$=value',     ['\\', '$'], { prefix: '\\', key: '$',    value: 'value',   arg: '\\$=value' }],
+    ['=',             ['\\', '$'], { prefix: '',   key: '',     value: '',        arg: '=' }],
 
-    expect(parseArg('$\\key=value', ['\\', '$']))
-      .toEqual({ key: '\\key', value: 'value', prefix: '$', arg: '$\\key=value' });
-    expect(parseArg('$\\key', ['\\', '$']))
-      .toEqual({ key: '\\key', value: undefined, prefix: '$', arg: '$\\key' });
-    expect(parseArg('key', ['\\', '$']))
-      .toEqual({ key: 'key', value: undefined, prefix: '', arg: 'key' });
-    expect(parseArg('$\\key=', ['\\', '$']))
-      .toEqual({ key: '\\key', value: '', prefix: '$', arg: '$\\key=' });
-    expect(parseArg('$\\', ['\\', '$']))
-      .toEqual({ key: '\\', value: undefined, prefix: '$', arg: '$\\' });
-    expect(parseArg('=value', ['\\', '$']))
-      .toEqual({ key: '', value: 'value', prefix: '', arg: '=value' });
-    expect(parseArg('$\\=value', ['\\', '$']))
-      .toEqual({ key: '\\', value: 'value', prefix: '$', arg: '$\\=value' });
-    expect(parseArg('=', ['\\', '$']))
-      .toEqual({ key: '', value: '', prefix: '', arg: '=' });
+    ['$\\key=value',  ['\\', '$'], { prefix: '$',  key: '\\key',  value: 'value',   arg: '$\\key=value' }],
+    ['$\\key',        ['\\', '$'], { prefix: '$',  key: '\\key',  value: undefined, arg: '$\\key' }],
+    ['key',           ['\\', '$'], { prefix: '',   key: 'key',    value: undefined, arg: 'key' }],
+    ['$\\key=',       ['\\', '$'], { prefix: '$',  key: '\\key',  value: '',        arg: '$\\key=' }],
+    ['$\\',           ['\\', '$'], { prefix: '$',  key: '\\',     value: undefined, arg: '$\\' }],
+    ['=value',        ['\\', '$'], { prefix: '',   key: '',       value: 'value',   arg: '=value' }],
+    ['$\\=value',     ['\\', '$'], { prefix: '$',  key: '\\',     value: 'value',   arg: '$\\=value' }],
+    ['=',             ['\\', '$'], { prefix: '',   key: '',       value: '',        arg: '=' }]
+  ])('must parse argument(%s) with several prefixes (\\$) correctly', (arg, prefixes, expected) => {
+    expect(parseArg(arg, prefixes)).toEqual(expected);
   });
 });
 
-describe('parseArgs function', () => {
-  test('must parse arguments correctly by default', () => {
+describe(parseArgs, () => {
+  it('must parse arguments correctly by default', () => {
     expect(parseArgs(['--key1=value1', '--key2', 'key3', '--key4=', '--', '=value6', '--=value7', '=']))
       .toEqual({ key1: 'value1', key2: undefined, key4: '' });
   });
 
-  test('must parse arguments correctly with prefix = _', () => {
+  it('must parse arguments correctly with prefix = _', () => {
     expect(parseArgs(['--key1=value1', '__key2', '_key3=', '--key4', '-key5', '=value6', '--=value7', '='], undefined, ['_']))
       .toEqual({ key2: undefined, key3: '' });
   });
 });
 
-describe('argsParser function', () => {
-  test('must overwrite the identical keys to the value of last argument with the same key', () => {
+describe(argsParser, () => {
+  it('must overwrite the identical keys to the value of last argument with the same key', () => {
     expect(argsParser([
       '--foo=5',
       '--foo=10'
@@ -254,7 +189,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('The specified keys take precedence', () => {
+  it('The specified keys take precedence', () => {
     expect(argsParser(
       [
         '__foo=5',
@@ -284,7 +219,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('Specified keys is overriding global options', () => {
+  it('Specified keys is overriding global options', () => {
     expect(argsParser(
       [
         '--key1',
@@ -316,7 +251,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with default parameters', () => {
+  it('must parse arguments correctly with default parameters', () => {
     expect(argsParser([
       '--key1',
       '--key2=',
@@ -340,243 +275,108 @@ describe('argsParser function', () => {
     ])).toEqual({ key3: 15 });
   });
 
-  test('must parse arguments correctly with given global defaultValue', () => {
-    expect(argsParser(
+  it.each([
+    [
       ['--key1', '--key2='],
-      { defaultValue: undefined }
-    )).toEqual({
-      key1: undefined, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: undefined },
+      { key1: undefined, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: null }
-    )).toEqual({
-      key1: null, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: null },
+      { key1: null, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: true }
-    )).toEqual({
-      key1: true, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: true },
+      { key1: true, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: false }
-    )).toEqual({
-      key1: false, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: false },
+      { key1: false, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: 0 }
-    )).toEqual({
-      key1: 0, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: 0 },
+      { key1: 0, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: 0.5 }
-    )).toEqual({
-      key1: 0.5, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: 0.5 },
+      { key1: 0.5, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: -0.5 }
-    )).toEqual({
-      key1: -0.5, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: -0.5 },
+      { key1: -0.5, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: Infinity }
-    )).toEqual({
-      key1: Infinity, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: Infinity },
+      { key1: Infinity, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: +Infinity }
-    )).toEqual({
-      key1: +Infinity, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: +Infinity },
+      { key1: +Infinity, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: -Infinity }
-    )).toEqual({
-      key1: -Infinity, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: -Infinity },
+      { key1: -Infinity, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: NaN }
-    )).toEqual({
-      key1: NaN, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: NaN },
+      { key1: NaN, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: 'Hello World!' }
-    )).toEqual({
-      key1: 'Hello World!', key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: 'Hello World!' },
+      { key1: 'Hello World!', key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: { name: 'alex', age: 22, married: false } }
-    )).toEqual({
-      key1: { name: 'alex', age: 22, married: false }, key2: ''
-    });
-
-    expect(argsParser(
+      { defaultValue: { name: 'alex', age: 22, married: false } },
+      { key1: { name: 'alex', age: 22, married: false }, key2: '' }
+    ],
+    [
       ['--key1', '--key2='],
-      { defaultValue: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"] }
-    )).toEqual({
-      key1: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"], key2: ''
-    });
+      { defaultValue: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"] },
+      { key1: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"], key2: '' }
+    ]
+  ])('must parse arguments correctly with given global defaultValue', (args, options, expected) => {
+    expect(argsParser(args, options)).toEqual(expected);
   });
 
-  test('must parse arguments correctly with given global parseValue', () => {
+  it('must parse arguments correctly with given global parseValue', () => {
     expect(argsParser(
       [
-        '--key1=undefined',
-        '--key2=null',
-        '--key3=true',
-        '--key4=false',
-        '--key5=0',
-        '--key6=0.5',
-        '--key7=-0.5',
-        '--key8=Infinity',
-        '--key9=+Infinity',
-        '--key10=-Infinity',
-        '--key11=NaN',
-        '--key12=Hello World!',
-        '--key13={ name: "alex", \'age\': 22, "married": false }',
-        '--key14=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-
-        '--key15=\'undefined\'',
-        '--key16="null"',
-        '--key17=\'true\'',
-        '--key18="false"',
-        '--key19=\'0\'',
-        '--key20="0.5"',
-        '--key21=\'-0.5\'',
-        '--key22="Infinity"',
-        '--key23=\'+Infinity\'',
-        '--key24="-Infinity"',
-        '--key25=\'NaN\'',
-        '--key26="Hello World!"',
-        '--key27=\'{ name: "alex", \'age\': 22, "married": false }\'',
-        '--key28="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+        '--key1=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+        '--key2="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
       ],
-      {
-        parseValue: true
-      }
+      { parseValue: true }
     )).toEqual({
-      key1: undefined,
-      key2: null,
-      key3: true,
-      key4: false,
-      key5: 0,
-      key6: 0.5,
-      key7: -0.5,
-      key8: Infinity,
-      key9: +Infinity,
-      key10: -Infinity,
-      key11: NaN,
-      key12: 'Hello World!',
-      key13: { name: 'alex', age: 22, married: false },
-      key14: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
-
-      key15: 'undefined',
-      key16: 'null',
-      key17: 'true',
-      key18: 'false',
-      key19: '0',
-      key20: '0.5',
-      key21: '-0.5',
-      key22: 'Infinity',
-      key23: '+Infinity',
-      key24: '-Infinity',
-      key25: 'NaN',
-      key26: 'Hello World!',
-      key27: '{ name: "alex", \'age\': 22, "married": false }',
-      key28: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'
+      key1: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
+      key2: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'
     });
 
     expect(argsParser(
       [
-        '--key1=undefined',
-        '--key2=null',
-        '--key3=true',
-        '--key4=false',
-        '--key5=0',
-        '--key6=0.5',
-        '--key7=-0.5',
-        '--key8=Infinity',
-        '--key9=+Infinity',
-        '--key10=-Infinity',
-        '--key11=NaN',
-        '--key12=Hello World!',
-        '--key13={ name: "alex", \'age\': 22, "married": false }',
-        '--key14=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-
-        '--key15=\'undefined\'',
-        '--key16="null"',
-        '--key17=\'true\'',
-        '--key18="false"',
-        '--key19=\'0\'',
-        '--key20="0.5"',
-        '--key21=\'-0.5\'',
-        '--key22="Infinity"',
-        '--key23=\'+Infinity\'',
-        '--key24="-Infinity"',
-        '--key25=\'NaN\'',
-        '--key26="Hello World!"',
-        '--key27=\'{ name: "alex", \'age\': 22, "married": false }\'',
-        '--key28="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+        '--key1=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+        '--key2="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
       ],
       {
         parseValue: false
       }
     )).toEqual({
-      key1: 'undefined',
-      key2: 'null',
-      key3: 'true',
-      key4: 'false',
-      key5: '0',
-      key6: '0.5',
-      key7: '-0.5',
-      key8: 'Infinity',
-      key9: '+Infinity',
-      key10: '-Infinity',
-      key11: 'NaN',
-      key12: 'Hello World!',
-      key13: '{ name: "alex", \'age\': 22, "married": false }',
-      key14: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
-
-      key15: '\'undefined\'',
-      key16: '"null"',
-      key17: '\'true\'',
-      key18: '"false"',
-      key19: '\'0\'',
-      key20: '"0.5"',
-      key21: '\'-0.5\'',
-      key22: '"Infinity"',
-      key23: '\'+Infinity\'',
-      key24: '"-Infinity"',
-      key25: '\'NaN\'',
-      key26: '"Hello World!"',
-      key27: '\'{ name: "alex", \'age\': 22, "married": false }\'',
-      key28: '"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+      key1: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+      key2: '"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
     });
   });
 
-  test('must parse arguments correctly with given global prefix', () => {
+  it('must parse arguments correctly with given global prefix', () => {
     expect(argsParser(
       [
         'key1=5',
@@ -616,7 +416,7 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with aliases', () => {
+  it('must parse arguments correctly with aliases', () => {
     expect(argsParser(
       [
         '-fo',
@@ -642,17 +442,13 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with aliases and overriding options', () => {
+  {
     const keysWithAlias1 = {
       foo: {
         aliases: ['f', 'fo'],
         defaultValue: 5
       }
     };
-
-    expect(argsParser( ['--foo'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-f'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-fo'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
 
     const keysWithAlias2 = {
       foo: {
@@ -662,20 +458,12 @@ describe('argsParser function', () => {
       }
     };
 
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-
     const keysWithAlias3 = {
       '--foo': {
         aliases: ['-f', '-fo'],
         defaultValue: 5
       }
     };
-
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
 
     const keysWithAlias4 = {
       '--foo': {
@@ -684,12 +472,25 @@ describe('argsParser function', () => {
       }
     };
 
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['+f'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['+fo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
-  });
+    it.each([
+      [['--foo'], {}, keysWithAlias1, { foo: 5 }],
+      [['-f'], {}, keysWithAlias1, { foo: 5 }],
+      [['-fo'], {}, keysWithAlias1, { foo: 5 }],
+      [['--foo'], { prefix: '' }, keysWithAlias2, { foo: 5 }],
+      [['-f'], { prefix: '' }, keysWithAlias2, { foo: 5 }],
+      [['-fo'], { prefix: '' }, keysWithAlias2, { foo: 5 }],
+      [['--foo'], { prefix: '' }, keysWithAlias3, { '--foo': 5 }],
+      [['-f'], { prefix: '' }, keysWithAlias3, { '--foo': 5 }],
+      [['-fo'], { prefix: '' }, keysWithAlias3, { '--foo': 5 }],
+      [['--foo'], { prefix: '' }, keysWithAlias4, { '--foo': 5 }],
+      [['+f'], { prefix: '' }, keysWithAlias4, { '--foo': 5 }],
+      [['+fo'], { prefix: '' }, keysWithAlias4, { '--foo': 5 }]
+    ])('must parse arguments correctly with aliases and overriding options', (args, options, keys, expected) => {
+      expect(argsParser(args, options, keys)).toEqual(expected);
+    });
+  }
 
-  test('must parse arguments correctly with keys', () => {
+  it('must parse arguments correctly with keys', () => {
     // with global prefix
     expect(argsParser(
       [
