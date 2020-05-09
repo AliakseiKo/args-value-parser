@@ -1,4 +1,4 @@
-const JSON5 = require('./JSON5_md_by_AliakseiKo.min.js');
+const parser = require('./parser');
 const { escape } = require('./utils');
 
 /**
@@ -7,13 +7,13 @@ const { escape } = require('./utils');
  * @returns {*} - a JS data type or structure if the parsing was successful,
  * otherwise the input value.
  * @example
- * parseValue('[0.5, -Infinity, null, { name: "alex", age: 22 }]');
+ * parseValue('[0.5, -Infinity, null, 0o377, { name: "alex", age: 22 }]');
  *
- * returns [0.5, -Infinity, null, { name: 'alex', age: 22 }];
+ * returns [0.5, -Infinity, null, 255, { name: 'alex', age: 22 }];
  */
 function parseValue(value) {
   try {
-    return JSON5.parse(value);
+    return parser(value);
   } catch (e) {
     if (typeof value === 'string') return value.replace(/^(['"`])(.*)\1$/s, '$2');
     return value;

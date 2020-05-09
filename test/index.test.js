@@ -1,7 +1,11 @@
 /* eslint-env jest */
-const { argsParser, parseArgs, parseArg, parseValue } = require('../src/parser');
+const { argsParser, parseArgs, parseArg, parseValue } = require('../src/index');
 
 describe('parseValue function', () => {
+  test('must parse undefined', () => {
+    expect(parseValue('undefined')).toEqual(undefined);
+  });
+
   test('must parse null', () => {
     expect(parseValue('null')).toEqual(null);
   });
@@ -13,8 +17,23 @@ describe('parseValue function', () => {
 
   test('must parse number', () => {
     expect(parseValue('0')).toEqual(0);
+    expect(parseValue('+0')).toEqual(0);
+    expect(parseValue('-0')).toEqual(0);
     expect(parseValue('0.5')).toEqual(0.5);
+    expect(parseValue('+0.5')).toEqual(0.5);
     expect(parseValue('-0.5')).toEqual(-0.5);
+    expect(parseValue('123e-2')).toEqual(1.23);
+    expect(parseValue('+123e-2')).toEqual(1.23);
+    expect(parseValue('-123e-2')).toEqual(-1.23);
+    expect(parseValue('0x2f0D')).toEqual(12045);
+    expect(parseValue('+0x2f0D')).toEqual(12045);
+    expect(parseValue('-0x2f0D')).toEqual(-12045);
+    expect(parseValue('0b1111111')).toEqual(127);
+    expect(parseValue('+0b1111111')).toEqual(127);
+    expect(parseValue('-0b1111111')).toEqual(-127);
+    expect(parseValue('0o347')).toEqual(231);
+    expect(parseValue('+0o347')).toEqual(231);
+    expect(parseValue('-0o347')).toEqual(-231);
     expect(parseValue('Infinity')).toEqual(Infinity);
     expect(parseValue('+Infinity')).toEqual(+Infinity);
     expect(parseValue('-Infinity')).toEqual(-Infinity);
@@ -22,18 +41,7 @@ describe('parseValue function', () => {
   });
 
   test('must parse string', () => {
-    expect(parseValue('"null"')).toEqual('null');
-    expect(parseValue('"true"')).toEqual('true');
-    expect(parseValue('"false"')).toEqual('false');
-    expect(parseValue('"0"')).toEqual('0');
-    expect(parseValue('"0.5"')).toEqual('0.5');
-    expect(parseValue('"-0.5"')).toEqual('-0.5');
-    expect(parseValue('"Infinity"')).toEqual('Infinity');
-    expect(parseValue('"+Infinity"')).toEqual('+Infinity');
-    expect(parseValue('"-Infinity"')).toEqual('-Infinity');
-    expect(parseValue('"NaN"')).toEqual('NaN');
-    expect(parseValue('"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'))
-      .toEqual('[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]');
+    expect(parseValue('"250"')).toEqual('250');
 
     expect(parseValue('Hello World!')).toEqual('Hello World!');
     expect(parseValue('"Hello World!"')).toEqual('Hello World!');
@@ -41,13 +49,13 @@ describe('parseValue function', () => {
   });
 
   test('must parse array', () => {
-    expect(parseValue('[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'))
-      .toEqual([null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!']);
+    expect(parseValue('[undefined, null, true, false, 250, -Infinity, "Hello World!"]'))
+      .toEqual([undefined, null, true, false, 250, -Infinity, "Hello World!"]);
   });
 
   test('must parse object', () => {
     expect(parseValue('{ name: "alex", \'age\': 22, "married": false }'))
-      .toEqual({ name: "alex", age: 22, married: false });
+      .toEqual({ name: 'alex', age: 22, married: false });
   });
 });
 
@@ -227,25 +235,98 @@ describe('parseArgs function', () => {
 });
 
 describe('argsParser function', () => {
+  test('must overwrite the identical keys to the value of last argument with the same key', () => {
+    expect(argsParser([
+      '--foo=5',
+      '--foo=10'
+    ])).toEqual({
+      foo: 10
+    });
+
+    expect(argsParser([
+      '--foo=5',
+      '--bar=true',
+      '--foo=10',
+      '--bar=false'
+    ])).toEqual({
+      foo: 10,
+      bar: false
+    });
+  });
+
+  test('The specified keys take precedence', () => {
+    expect(argsParser(
+      [
+        '__foo=5',
+        '--foo=10'
+      ],
+      undefined,
+      {
+        foo: { prefix: '_' }
+      }
+    )).toEqual({
+      foo: 5,
+      '--foo': 10
+    });
+
+    expect(argsParser(
+      [
+        '--foo=10',
+        '__foo=5'
+      ],
+      undefined,
+      {
+        foo: { prefix: '_' }
+      }
+    )).toEqual({
+      foo: 5,
+      '--foo': 10
+    });
+  });
+
+  test('Specified keys is overriding global options', () => {
+    expect(argsParser(
+      [
+        '--key1',
+        '--key2',
+        '--key3=null',
+        '__key4=[1, 2, 3]'
+      ],
+      {
+        defaultValue: true,
+        parseValue: true,
+        prefix: '-'
+      },
+      {
+        key2: {
+          defaultValue: 10
+        },
+        key3: {
+          parseValue: false
+        },
+        key4: {
+          prefix: '_'
+        }
+      }
+    )).toEqual({
+      key1: true,
+      key2: 10,
+      key3: 'null',
+      key4: [1, 2, 3]
+    });
+  });
+
   test('must parse arguments correctly with default parameters', () => {
     expect(argsParser([
       '--key1',
       '--key2=',
       '--key3="null"',
-      '--key4=[0.5, +Infinity, false, [1, NaN, 3], { name: "alex", \'age\': 22, "married": false }, null]',
+      '--key4=[undefined, 0.5, +Infinity, false, [1, NaN, 3], { name: "alex", \'age\': 22, "married": false }, null]',
     ])).toEqual({
       key1: true,
       key2: '',
       key3: 'null',
-      key4: [0.5, +Infinity, false, [1, NaN, 3], { name: 'alex', age: 22, married: false }, null]
-    });
-
-    // rewrite the same keys
-    expect(argsParser([
-      '--key1=5',
-      '--key1=10'
-    ])).toEqual({
-      key1: 10
+      key4: [undefined, 0.5, +Infinity, false, [1, NaN, 3], { name: 'alex', age: 22, married: false }, null]
     });
 
     expect(argsParser([
@@ -359,131 +440,139 @@ describe('argsParser function', () => {
     });
   });
 
-  test('must parse arguments correctly with given global valueToJS', () => {
+  test('must parse arguments correctly with given global parseValue', () => {
     expect(argsParser(
       [
-        '--key1=null',
-        '--key2=true',
-        '--key3=false',
-        '--key4=0',
-        '--key5=0.5',
-        '--key6=-0.5',
-        '--key7=Infinity',
-        '--key8=+Infinity',
-        '--key9=-Infinity',
-        '--key10=NaN',
-        '--key11=Hello World!',
-        '--key12={ name: "alex", \'age\': 22, "married": false }',
-        '--key13=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+        '--key1=undefined',
+        '--key2=null',
+        '--key3=true',
+        '--key4=false',
+        '--key5=0',
+        '--key6=0.5',
+        '--key7=-0.5',
+        '--key8=Infinity',
+        '--key9=+Infinity',
+        '--key10=-Infinity',
+        '--key11=NaN',
+        '--key12=Hello World!',
+        '--key13={ name: "alex", \'age\': 22, "married": false }',
+        '--key14=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
 
-        '--key14="null"',
-        '--key15=\'true\'',
-        '--key16="false"',
-        '--key17=\'0\'',
-        '--key18="0.5"',
-        '--key19=\'-0.5\'',
-        '--key20="Infinity"',
-        '--key21=\'+Infinity\'',
-        '--key22="-Infinity"',
-        '--key23=\'NaN\'',
-        '--key24="Hello World!"',
-        '--key25=\'{ name: "alex", \'age\': 22, "married": false }\'',
-        '--key26="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+        '--key15=\'undefined\'',
+        '--key16="null"',
+        '--key17=\'true\'',
+        '--key18="false"',
+        '--key19=\'0\'',
+        '--key20="0.5"',
+        '--key21=\'-0.5\'',
+        '--key22="Infinity"',
+        '--key23=\'+Infinity\'',
+        '--key24="-Infinity"',
+        '--key25=\'NaN\'',
+        '--key26="Hello World!"',
+        '--key27=\'{ name: "alex", \'age\': 22, "married": false }\'',
+        '--key28="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
       ],
       {
-        valueToJS: true
+        parseValue: true
       }
     )).toEqual({
-      key1: null,
-      key2: true,
-      key3: false,
-      key4: 0,
-      key5: 0.5,
-      key6: -0.5,
-      key7: Infinity,
-      key8: +Infinity,
-      key9: -Infinity,
-      key10: NaN,
-      key11: 'Hello World!',
-      key12: { name: 'alex', age: 22, married: false },
-      key13: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
+      key1: undefined,
+      key2: null,
+      key3: true,
+      key4: false,
+      key5: 0,
+      key6: 0.5,
+      key7: -0.5,
+      key8: Infinity,
+      key9: +Infinity,
+      key10: -Infinity,
+      key11: NaN,
+      key12: 'Hello World!',
+      key13: { name: 'alex', age: 22, married: false },
+      key14: [null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, 'Hello World!'],
 
-      key14: 'null',
-      key15: 'true',
-      key16: 'false',
-      key17: '0',
-      key18: '0.5',
-      key19: '-0.5',
-      key20: 'Infinity',
-      key21: '+Infinity',
-      key22: '-Infinity',
-      key23: 'NaN',
-      key24: 'Hello World!',
-      key25: '{ name: "alex", \'age\': 22, "married": false }',
-      key26: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'
+      key15: 'undefined',
+      key16: 'null',
+      key17: 'true',
+      key18: 'false',
+      key19: '0',
+      key20: '0.5',
+      key21: '-0.5',
+      key22: 'Infinity',
+      key23: '+Infinity',
+      key24: '-Infinity',
+      key25: 'NaN',
+      key26: 'Hello World!',
+      key27: '{ name: "alex", \'age\': 22, "married": false }',
+      key28: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]'
     });
 
     expect(argsParser(
       [
-        '--key1=null',
-        '--key2=true',
-        '--key3=false',
-        '--key4=0',
-        '--key5=0.5',
-        '--key6=-0.5',
-        '--key7=Infinity',
-        '--key8=+Infinity',
-        '--key9=-Infinity',
-        '--key10=NaN',
-        '--key11=Hello World!',
-        '--key12={ name: "alex", \'age\': 22, "married": false }',
-        '--key13=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+        '--key1=undefined',
+        '--key2=null',
+        '--key3=true',
+        '--key4=false',
+        '--key5=0',
+        '--key6=0.5',
+        '--key7=-0.5',
+        '--key8=Infinity',
+        '--key9=+Infinity',
+        '--key10=-Infinity',
+        '--key11=NaN',
+        '--key12=Hello World!',
+        '--key13={ name: "alex", \'age\': 22, "married": false }',
+        '--key14=[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
 
-        '--key14="null"',
-        '--key15=\'true\'',
-        '--key16="false"',
-        '--key17=\'0\'',
-        '--key18="0.5"',
-        '--key19=\'-0.5\'',
-        '--key20="Infinity"',
-        '--key21=\'+Infinity\'',
-        '--key22="-Infinity"',
-        '--key23=\'NaN\'',
-        '--key24="Hello World!"',
-        '--key25=\'{ name: "alex", \'age\': 22, "married": false }\'',
-        '--key26="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+        '--key15=\'undefined\'',
+        '--key16="null"',
+        '--key17=\'true\'',
+        '--key18="false"',
+        '--key19=\'0\'',
+        '--key20="0.5"',
+        '--key21=\'-0.5\'',
+        '--key22="Infinity"',
+        '--key23=\'+Infinity\'',
+        '--key24="-Infinity"',
+        '--key25=\'NaN\'',
+        '--key26="Hello World!"',
+        '--key27=\'{ name: "alex", \'age\': 22, "married": false }\'',
+        '--key28="[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
       ],
       {
-        valueToJS: false
+        parseValue: false
       }
     )).toEqual({
-      key1: 'null',
-      key2: 'true',
-      key3: 'false',
-      key4: '0',
-      key5: '0.5',
-      key6: '-0.5',
-      key7: 'Infinity',
-      key8: '+Infinity',
-      key9: '-Infinity',
-      key10: 'NaN',
-      key11: 'Hello World!',
-      key12: '{ name: "alex", \'age\': 22, "married": false }',
-      key13: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
+      key1: 'undefined',
+      key2: 'null',
+      key3: 'true',
+      key4: 'false',
+      key5: '0',
+      key6: '0.5',
+      key7: '-0.5',
+      key8: 'Infinity',
+      key9: '+Infinity',
+      key10: '-Infinity',
+      key11: 'NaN',
+      key12: 'Hello World!',
+      key13: '{ name: "alex", \'age\': 22, "married": false }',
+      key14: '[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]',
 
-      key14: '"null"',
-      key15: '\'true\'',
-      key16: '"false"',
-      key17: '\'0\'',
-      key18: '"0.5"',
-      key19: '\'-0.5\'',
-      key20: '"Infinity"',
-      key21: '\'+Infinity\'',
-      key22: '"-Infinity"',
-      key23: '\'NaN\'',
-      key24: '"Hello World!"',
-      key25: '\'{ name: "alex", \'age\': 22, "married": false }\'',
-      key26: '"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
+      key15: '\'undefined\'',
+      key16: '"null"',
+      key17: '\'true\'',
+      key18: '"false"',
+      key19: '\'0\'',
+      key20: '"0.5"',
+      key21: '\'-0.5\'',
+      key22: '"Infinity"',
+      key23: '\'+Infinity\'',
+      key24: '"-Infinity"',
+      key25: '\'NaN\'',
+      key26: '"Hello World!"',
+      key27: '\'{ name: "alex", \'age\': 22, "married": false }\'',
+      key28: '"[null, true, false, 0, 0.5, -0.5, Infinity, +Infinity, -Infinity, NaN, "Hello World!"]"'
     });
   });
 
@@ -496,50 +585,111 @@ describe('argsParser function', () => {
         '+++key4=20',
         '-key5=25',
         '--key6=30',
-        '---key7=35',
+        '---key7=35'
       ],
       {
         prefix: '+'
       }
+    )).toEqual({ key3: 15 });
+
+    expect(argsParser(
+      [
+        'key1=5',
+        '-key2=10',
+        '--key3=15',
+        '---key4=20',
+        '_key5=25',
+        '__key6=30',
+        '___key7=35'
+      ],
+      {
+        prefix: ''
+      }
     )).toEqual({
-      key3: 15
+      key1: 5,
+      '-key2': 10,
+      '--key3': 15,
+      '---key4': 20,
+      _key5: 25,
+      __key6: 30,
+      ___key7: 35
     });
   });
 
-  test('must parse arguments correctly with keys', () => {
-    // overriding global options
+  test('must parse arguments correctly with aliases', () => {
     expect(argsParser(
       [
-        '--key1',
-        '--key2',
-        '--key3=null',
-        '--key4=false',
-        '__key4=[1, 2, 3]'
+        '-fo',
+        '-B=25',
+        '-Bz=null',
+        '--q=NaN',
+        '--ose=false'
       ],
+      undefined,
       {
-        defaultValue: true,
-        valueToJS: true,
-        prefix: '-'
-      },
-      {
-        key2: {
-          defaultValue: 10
-        },
-        key3: {
-          valueToJS: false
-        },
-        key4: {
-          prefix: '_'
-        }
+        foo: { aliases: ['f', 'fo'] },
+        bar: { aliases: ['B'] },
+        baz: { aliases: ['Bz'] },
+        qux: { aliases: ['q', 'qx'] },
+        ose: { aliases: ['o'] }
       }
     )).toEqual({
-      key1: true,
-      key2: 10,
-      key3: 'null',
-      key4: [1, 2, 3],
-      '--key4': false  // because key4 was reserved with prefix = '_'
+      foo: true,
+      bar: 25,
+      baz: null,
+      q: NaN,
+      ose: false
     });
+  });
 
+  test('must parse arguments correctly with aliases and overriding options', () => {
+    const keysWithAlias1 = {
+      foo: {
+        aliases: ['f', 'fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-f'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-fo'], {}, keysWithAlias1 )).toEqual({ foo: 5 });
+
+    const keysWithAlias2 = {
+      foo: {
+        aliases: ['f', 'fo'],
+        defaultValue: 5,
+        prefix: '-'
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
+
+    const keysWithAlias3 = {
+      '--foo': {
+        aliases: ['-f', '-fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
+
+    const keysWithAlias4 = {
+      '--foo': {
+        aliases: ['+f', '+fo'],
+        defaultValue: 5
+      }
+    };
+
+    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['+f'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
+    expect(argsParser( ['+fo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
+  });
+
+  test('must parse arguments correctly with keys', () => {
     // with global prefix
     expect(argsParser(
       [
@@ -597,51 +747,5 @@ describe('argsParser function', () => {
       '__key4': null,
       somekey: 'Hello World!'
     });
-
-    // aliases
-    const keysWithAlias = {
-      foo: {
-        aliases: ['f', 'fo'],
-        defaultValue: 5
-      }
-    };
-
-    expect(argsParser( ['--foo'], {}, keysWithAlias )).toEqual({ foo: 5 });
-    expect(argsParser( ['-f'], {}, keysWithAlias )).toEqual({ foo: 5 });
-    expect(argsParser( ['-fo'], {}, keysWithAlias )).toEqual({ foo: 5 });
-
-    const keysWithAlias2 = {
-      foo: {
-        aliases: ['f', 'fo'],
-        defaultValue: 5,
-        prefix: '-'
-      }
-    };
-
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias2 )).toEqual({ foo: 5 });
-
-    const keysWithAlias3 = {
-      '--foo': {
-        aliases: ['-f', '-fo'],
-        defaultValue: 5
-      }
-    };
-
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['-f'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['-fo'], { prefix: '' }, keysWithAlias3 )).toEqual({ '--foo': 5 });
-
-    const keysWithAlias4 = {
-      '--foo': {
-        aliases: ['+f', '+fo'],
-        defaultValue: 5
-      }
-    };
-
-    expect(argsParser( ['--foo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['+f'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
-    expect(argsParser( ['+fo'], { prefix: '' }, keysWithAlias4 )).toEqual({ '--foo': 5 });
   });
 });
