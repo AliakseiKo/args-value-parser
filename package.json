@@ -10,31 +10,37 @@
     "--key=value",
     "parser"
   ],
-  "main": "src/parser.js",
-  "private": true,
-  "scripts": {
-    "lint": "eslint ./src/",
-    "test": "jest ./test/",
-    "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json -d ./doc/"
+
+  "homepage": "https://github.com/AliakseiKo/args-parser#readme",
+  "bugs": {
+    "url": "https://github.com/AliakseiKo/args-parser/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AliakseiKo/args-parcer.git"
+    "url": "git+https://github.com/AliakseiKo/args-parser.git"
   },
   "author": {
     "name": "AliakseiKo",
     "email": "AliakseiKo@gmail.com"
   },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/AliakseiKo/args-parcer/issues"
+
+  "main": "./lib/index.js",
+  "exports": {
+    "import": "./lib/index.mjs",
+    "require": "./lib/index.js"
   },
-  "homepage": "https://github.com/AliakseiKo/args-parcer#readme",
+  "files": ["./lib/"],
+
+  "scripts": {
+    "lint": "eslint ./lib/",
+    "test": "jest ./test/",
+    "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json -d ./doc/"
+  },
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "eslint": "^6.8.0",
     "jest": "^26.0.1",
     "jsdoc": "^3.6.4"
-  },
-  "dependencies": {}
+  }
 }
