@@ -218,7 +218,7 @@ node example.js --foo='{ name: "alex", age: 22, married: false }'
 { foo: { name: 'alex', age: 22, married: false } }
 ```
 
-### **parseValue:** <a name="EXparseValue"></a>
+### **[parseValue](#parseValue):** <a name="EXparseValue"></a>
 
 ```js
 parseValue('undefined');
@@ -277,14 +277,19 @@ parseValue('"undefined"');
   returns 'undefined'; // it is a string!
 ```
 
-### **parseArg:** <a name="EXparseArg"></a>
+### **[parseArg](#parseArg):** <a name="EXparseArg"></a>
 
 If you do not write an equal sign in the line, the value will be `undefined`.
 ```js
 parseArg('--foo');
-  returns { key: '--foo', value: undefined, prefix: '--', arg: '--foo' };
+  returns { key: 'foo', value: undefined, prefix: '--', arg: '--foo' };
 ```
 If you write an equal sign in the line, but not to write the value, it will be `''`.
+```js
+parseArg('--foo=');
+  returns { key: 'foo', value: '', prefix: '--', arg: '--foo=' };
+```
+Without prefixes.
 ```js
 parseArg('--foo=25', ['']);
   returns { key: '--foo', value: '25', prefix: '', arg: '--foo=25' };
@@ -295,10 +300,10 @@ parseArg('__foo=25', ['-', '_']);
   returns { key: '-foo=25', value: '25', prefix: '_', arg: '_-foo=25' };
 ```
 
-### **parseArgs:** <a name="EXparseArgs"></a>
+### **[parseArgs](#parseArgs):** <a name="EXparseArgs"></a>
 As you might have guessed, argsParser also uses this function. For example you can create your own function of this kind.
 ```js
-// We will need parsArgs, parseValue function. Export them.
+// We will need parsArgs and parseValue functions. Export them.
 const { parsArgs, parseValue } = require('args-parser');
 
 // Create our own parser.
@@ -344,7 +349,7 @@ returns {
   qux: true }
 ```
 
-### **argsParser:** <a name="EXargsParser"></a>
+### **[argsParser](#argsParser):** <a name="EXargsParser"></a>
 
 with the default `options`
 
@@ -363,8 +368,6 @@ returns {
   qux: 25
 };
 ```
-
-***
 
 with the `options.defaultValue`
 
@@ -386,8 +389,6 @@ returns {
 };
 ```
 
-***
-
 with the `options.parseValue`
 
 ```js
@@ -408,8 +409,6 @@ returns {
 };
 ```
 
-***
-
 with the `options.prefix`
 
 ```js
@@ -428,8 +427,6 @@ argsParser(args, options);
 
 returns { rol: 30 };
 ```
-
-***
 
 with the `options.prefix = ''`
 
@@ -457,8 +454,6 @@ returns {
   ___zed: 35
 };
 ```
-
-***
 
 with default `options` and `keyDescriptor.aliases`
 
@@ -489,8 +484,6 @@ returns {
 };
 ```
 
-***
-
 with `options.defaultValue` and `keyDescriptor.defaultValue`
 
 ```js
@@ -514,8 +507,6 @@ returns {
 };
 ```
 
-***
-
 with `options.parseValue` and `keyDescriptor.parseValue`
 
 ```js
@@ -538,8 +529,6 @@ returns {
   qux: 25
 };
 ```
-
-***
 
 with `options.prefix` and `keyDescriptor.prefix`
 
@@ -571,8 +560,6 @@ returns {
 };
 ```
 
-***
-
 with `options.prefix = ''` and `keyDescriptor.prefix`
 
 ```js
@@ -602,8 +589,6 @@ returns {
 };
 ```
 
-***
-
 Identical keys will be overwritten.
 
 ```js
@@ -618,8 +603,6 @@ returns {
   foo: 10 // value is overwritten by the value of last argument with the same key.
 };
 ```
-
-***
 
 The specified keys take precedence.
 
@@ -640,8 +623,6 @@ returns {
   '--foo': 10 // despite the fact that --foo is fully valid for parsing, we cannot write its value to the foo key because it is already reserved for __foo. But due to the fact that the argument is still valid we can write it as is (with its prefix).
 };
 ```
-
-***
 
 Specified keys is overriding global options.
 
