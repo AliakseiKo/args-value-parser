@@ -1,3 +1,11 @@
 {
-  "plugins": ["jsDoc.escapeAnBr.js"]
+  "opts": {
+    "template": "node_modules/docdash",
+    "destination": "./docs/"
+  },
+  "plugins": ["jsDoc.escapeAnBr.js"],
+
+  "docdash": {
+    "sort": false
+  }
 }
