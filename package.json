@@ -1,5 +1,5 @@
 {
-  "name": "args-parser",
+  "name": "args-value-parser",
   "version": "1.0.0",
   "description": "Parse command line arguments: --key=value. Transform value to JS data types or structures",
   "keywords": [
@@ -10,32 +10,31 @@
     "--key=value",
     "parser"
   ],
-
-  "homepage": "https://github.com/AliakseiKo/args-parser#readme",
+  "homepage": "https://github.com/AliakseiKo/args-value-parser#readme",
   "bugs": {
-    "url": "https://github.com/AliakseiKo/args-parser/issues"
+    "url": "https://github.com/AliakseiKo/args-value-parser/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AliakseiKo/args-parser.git"
+    "url": "git+https://github.com/AliakseiKo/args-value-parser.git"
   },
   "author": {
     "name": "AliakseiKo",
     "email": "AliakseiKo@gmail.com"
   },
   "license": "MIT",
-
   "main": "./lib/index.js",
   "exports": {
     "import": "./lib/index.mjs",
     "require": "./lib/index.js"
   },
-  "files": ["./lib/"],
-
+  "files": [
+    "./lib/"
+  ],
   "scripts": {
     "lint": "eslint ./lib/",
     "test": "jest ./test/",
-    "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json -d ./doc/"
+    "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",

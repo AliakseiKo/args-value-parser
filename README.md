@@ -1,4 +1,4 @@
-# args-parser
+# args-value-parser
 Parse command line arguments: --key=value.
 Transform value to JS data types or structures.
 
@@ -29,7 +29,7 @@ This module parses undefined, null, boolean, number (NaN, Infinity, bin, oct, he
 
 ## <a name='install'></a> **Install**
 ```
-npm install args-parser
+npm install args-value-parser
 ```
 
 ## <a name='usage'></a> **Usage**
@@ -658,7 +658,7 @@ returns {
 
 ## <a name='license'></a> **license**
 
-[MIT](https://github.com/AliakseiKo/args-parser/blob/master/LICENSE)
+[MIT](https://github.com/AliakseiKo/args-value-parser/blob/master/LICENSE)
 
 ## <a name="other"></a> **Other**
 This module use modified [JSON5](https://json5.org/)<small><sup>[license](https://github.com/json5/json5/blob/master/LICENSE.md)</sup></small> parse function.
