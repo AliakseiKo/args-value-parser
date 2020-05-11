@@ -21,7 +21,6 @@ This module parses undefined, null, boolean, number (NaN, Infinity, bin, oct, he
 * [License](#license)
 * [Other](#other)
 
-
 [JSDmethods]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html
 [JSDparseValue]:https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#parseValue
 [JSDparseArg]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#parseArg
