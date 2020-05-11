@@ -3,7 +3,7 @@ function replacer(str) {
 }
 
 function descriptionReplace(node) {
-  if (node && node.description) node.description = replacer(node.description);
+  if (node && typeof node.description === 'string') node.description = replacer(node.description);
 }
 
 module.exports = {
