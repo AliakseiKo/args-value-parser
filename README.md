@@ -12,7 +12,7 @@ This module parses undefined, null, boolean, number (NaN, Infinity, bin, oct, he
     * [parseValue](#parseValue) <small><sup>[jsDoc][JSDparseValue]</sup></small>
     * [parseArg](#parseArg) <small><sup>[jsDoc][JSDparseArg]</sup></small>
     * [parseArgs](#parseArgs) <small><sup>[jsDoc][JSDparseArgs]</sup></small>
-    * [argParser](#argParser) <small><sup>[jsDoc][JSDargsParser]</sup></small>
+    * [argsParser](#argsParser) <small><sup>[jsDoc][JSDargsParser]</sup></small>
 * [Examples](#examples)
     * [parseValue](#EXparseValue)
     * [parseArg](#EXparseArg)
