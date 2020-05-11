@@ -34,7 +34,7 @@ $ npm install args-value-parser
 
 ## <a name='usage'></a> **Usage**
 ```js
-const { argsParser } = require('args-parser');
+const { argsParser } = require('args-value-parser');
 
 const args = argsParser();
 ```
@@ -45,10 +45,11 @@ example **gulpfile.js:**
 ```js
 const { src, dest } = require('gulp');
 const sourcemaps = require('gulp-sourcemaps');
+const babel = require('gulp-babel');
 const uglify = require('gulp-uglify');
 const gulpIf = require("gulp-if");
 
-const { argsParser } = require('args-parser');
+const { argsParser } = require('args-value-parser');
 
 const { prod = false } = argsParser();
 
@@ -57,6 +58,7 @@ const isDev = !prod;
 const scripts = () =>
   src('./src/script.js')
   .pipe(gulpIf(isDev, sourcemaps.init()))
+  .pipe(babel({ presets: ['@babel/env'] }))
   .pipe(uglify())
   .pipe(gulpIf(isDev, sourcemaps.write()))
   .pipe(dest('./dist/'));
@@ -175,7 +177,7 @@ usage with cli
 
 **example.js:**
 ```js
-const { argsParser } = require('args-parser');
+const { argsParser } = require('args-value-parser');
 
 const args = argsParser();
 
@@ -304,7 +306,7 @@ parseArg('__foo=25', ['-', '_']);
 As you might have guessed, argsParser also uses this function. For example you can create your own function of this kind.
 ```js
 // We will need parsArgs and parseValue functions. Export them.
-const { parsArgs, parseValue } = require('args-parser');
+const { parsArgs, parseValue } = require('args-value-parser');
 
 // Create our own parser.
 function ourParser(args, defaultValue, type) {

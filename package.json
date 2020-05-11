@@ -36,6 +36,9 @@
     "test": "jest ./test/",
     "doc": "jsdoc ./lib/index.js -c ./jsDoc.config.json"
   },
+  "engines": {
+    "node": ">=8"
+  },
   "devDependencies": {
     "@types/jest": "^25.2.1",
     "docdash": "^1.2.0",
