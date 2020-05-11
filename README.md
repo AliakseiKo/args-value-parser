@@ -1,6 +1,6 @@
 # args-value-parser
 Parse command line arguments: --key=value.
-Transform value to JS data types or structures.
+Parse value as JS data type or structure.
 
 You can specify a prefix, default value for all keys.
 You can also specify a prefix, default value and aliases for each key individually.
@@ -28,8 +28,8 @@ This module parses undefined, null, boolean, number (NaN, Infinity, bin, oct, he
 [JSDargsParser]: ./doc/global.html#argsParser
 
 ## <a name='install'></a> **Install**
-```
-npm install args-value-parser
+```bash
+$ npm install args-value-parser
 ```
 
 ## <a name='usage'></a> **Usage**
@@ -66,8 +66,8 @@ module.exports = { scripts };
 
 To build scripts in production (without sourcemaps):
 
-```
-gulp scripts --prod
+```bash
+$ gulp scripts --prod
 ```
 
 ## <a name='methods'></a> **Methods** <small><sup>[jsDoc][JSDmethods]</sup></small>
@@ -79,7 +79,7 @@ const { parseValue, parseArg, parseArgs, argsParser } = require('argsParser');
 ```
 
 ### <a name='parseValue'></a> **parseValue`(value)`** <small><sup>[jsDoc][JSDparseValue]</sup></small>
-Parses input value to JS data type or structure, if it is possible.
+Parses input value as JS data type or structure, if it is possible.
 If you wrap the string in extra quotation marks, the value will not be parsed, and additional
 quotation marks will be deleted.
 
@@ -141,7 +141,7 @@ Parses each argument from array of arguments.
 
     * `options.defaultValue = true` - a default value. used if argument value will not passed. For example if we passed `'--foo'` without any value then value of foo would be equal options.defaultValue.
 
-    * `options.parseValue = true` - parse string value to JS data type or structure. For example if we set this property to false then value of passed argument, for example like this `'--foo=true'` will not be boolean, it will be string `'true'`.
+    * `options.parseValue = true` - parse string value as JS data type or structure. For example if we set this property to false then value of passed argument, for example like this `'--foo=true'` will not be boolean, it will be string `'true'`.
 
     * `options.prefix = '-'` - prefix of argument. For example, in the following string `'--foo=25'` prefix would be `'-'`.
 
@@ -151,7 +151,7 @@ Parses each argument from array of arguments.
 
     * `keyDescriptor.defaultValue = options.defaultValue` - a default value. Overrides `options.defaultValue`.
 
-    * `keyDescriptor.parseValue = options.parseValue` - parse string value to JS data type or structure. Overrides `options.parseValue`.
+    * `keyDescriptor.parseValue = options.parseValue` - parse string value as JS data type or structure. Overrides `options.parseValue`.
 
     * `keyDescriptor.prefix = options.parseValue` - prefix of argument. For example, in the following string `'--foo=25'` prefix would be `'-'`. Overrides `options.parseValue`.
 
@@ -185,8 +185,8 @@ console.log(args);
 ***
 
 **console input:**
-```
-node example.js --foo --bar=null --baz=-0.0035 --qux='Hello World!'
+```bash
+$ node example.js --foo --bar=null --baz=-0.0035 --qux='Hello World!'
 ```
 
 **console output:**
@@ -197,8 +197,8 @@ node example.js --foo --bar=null --baz=-0.0035 --qux='Hello World!'
 ***
 
 **console input:**
-```
-node example.js --foo='[0.5, -Infinity, NaN, "", [1, 2, 3], true]'
+```bash
+$ node example.js --foo='[0.5, -Infinity, NaN, "", [1, 2, 3], true]'
 ```
 
 **console output:**
@@ -209,8 +209,8 @@ node example.js --foo='[0.5, -Infinity, NaN, "", [1, 2, 3], true]'
 ***
 
 **console input:**
-```
-node example.js --foo='{ name: "alex", age: 22, married: false }'
+```bash
+$ node example.js --foo='{ name: "alex", age: 22, married: false }'
 ```
 
 **console output:**
