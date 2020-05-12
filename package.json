@@ -1,6 +1,6 @@
 {
   "name": "args-value-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Parse command line arguments: --key=value. Parse value as JS data type or structure.",
   "keywords": [
     "args",
