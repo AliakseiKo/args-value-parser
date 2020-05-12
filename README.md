@@ -77,7 +77,7 @@ $ gulp scripts --prod
 This module export the following methods:
 
 ```js
-const { parseValue, parseArg, parseArgs, argsParser } = require('argsParser');
+const { parseValue, parseArg, parseArgs, argsParser } = require('args-value-parser');
 ```
 
 ### <a name='parseValue'></a> **parseValue`(value)`** <small><sup>[jsDoc][JSDparseValue]</sup></small>
@@ -298,7 +298,7 @@ parseArg('--foo=25', ['']);
 ```
 With several prefixes.
 ```js
-parseArg('__foo=25', ['-', '_']);
+parseArg('_-foo=25', ['-', '_']);
   returns { key: '-foo=25', value: '25', prefix: '_', arg: '_-foo=25' };
 ```
 
