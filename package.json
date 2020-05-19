@@ -1,6 +1,6 @@
 {
   "name": "args-value-parser",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Parse command line arguments: --key=value. Parse value as JS data type or structure.",
   "keywords": [
     "args",
@@ -10,6 +10,11 @@
     "--key=value",
     "parser"
   ],
+  "author": {
+    "name": "AliakseiKo",
+    "email": "AliakseiKo@gmail.com"
+  },
+  "license": "MIT",
   "homepage": "https://github.com/AliakseiKo/args-value-parser#readme",
   "bugs": {
     "url": "https://github.com/AliakseiKo/args-value-parser/issues"
@@ -18,19 +23,12 @@
     "type": "git",
     "url": "git+https://github.com/AliakseiKo/args-value-parser.git"
   },
-  "author": {
-    "name": "AliakseiKo",
-    "email": "AliakseiKo@gmail.com"
-  },
-  "license": "MIT",
   "main": "./lib/index.js",
   "exports": {
     "import": "./lib/index.mjs",
     "require": "./lib/index.js"
   },
-  "files": [
-    "lib/"
-  ],
+  "files": ["lib/"],
   "scripts": {
     "lint": "eslint ./lib/",
     "test": "jest ./test/",

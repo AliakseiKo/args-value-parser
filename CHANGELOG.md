@@ -1,3 +1,7 @@
+### 1.0.3
+
+- Fix example of `parseArgs` function in `README.md`.
+
 ### 1.0.2
 
 - Added `CHANGELOG.md` file.

@@ -131,7 +131,7 @@ parseArgs(['--foo=25', '-bar', '_qux='], (key, value) => {
   return { key, value };
 }); // prefixes = ['-'] by default.
 
-returns { f: 30, bar: undefined, '_qux': '' };
+returns { f: '255', bar: undefined, '_qux': '' };
 ```
 
 ### <a name='argsParser'></a> **argsParser`(args, options, keys)`** <small><sup>[jsDoc][JSDargsParser]</sup></small>
@@ -256,7 +256,7 @@ parseValue('0o377'); // it is an octal numeral system
 ```
 ```js
 parseValue('NaN');
-  returns 1.23;
+  returns NaN;
 ```
 ```js
 parseValue('-Infinity');
