@@ -21,11 +21,11 @@ This module parses undefined, null, boolean, number (NaN, Infinity, bin, oct, he
 * [License](#license)
 * [Other](#other)
 
-[JSDmethods]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html
-[JSDparseValue]:https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#parseValue
-[JSDparseArg]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#parseArg
-[JSDparseArgs]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#parseArgs
-[JSDargsParser]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/v1/doc/global.html#argsParser
+[JSDmethods]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/master/doc/global.html
+[JSDparseValue]:https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/master/doc/global.html#parseValue
+[JSDparseArg]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/master/doc/global.html#parseArg
+[JSDparseArgs]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/master/doc/global.html#parseArgs
+[JSDargsParser]: https://htmlpreview.github.io/?https://github.com/AliakseiKo/args-value-parser/blob/master/doc/global.html#argsParser
 
 ## <a name='install'></a> **Install**
 ```bash
